@@ -46,6 +46,7 @@ Selected contributions:
 - **Featured:** [#15131 — Fix misleading Terraform registry error when TLS certificate verification fails](https://github.com/dependabot/dependabot-core/pull/15131)
 - **Featured:** [#14344 — Maven: skip unresolvable properties](https://github.com/dependabot/dependabot-core/pull/14344)
 - **Featured:** [#14132 — Fetch release notes for the Gradle Wrapper](https://github.com/dependabot/dependabot-core/pull/14132)
+- **Featured:** [#13999 — Consider JRE/JDK suffixes and semantics for Maven/Gradle](https://github.com/dependabot/dependabot-core/pull/13999)
 - [#14905 — Rescue errors in metadata_cascades_for_dep to prevent PR message loss](https://github.com/dependabot/dependabot-core/pull/14905)
 - [#14114 — Add support for calendar-based versions for Maven and Gradle](https://github.com/dependabot/dependabot-core/pull/14114)
 

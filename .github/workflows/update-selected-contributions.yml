@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - README.md
+      - .github/data/highlighted-contributions.json
       - .github/scripts/update_selected_contributions.py
       - .github/workflows/update-selected-contributions.yml
       - tests/test_update_selected_contributions.py

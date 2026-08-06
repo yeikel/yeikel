@@ -38,5 +38,10 @@
     "repository": "dependabot/dependabot-core",
     "number": 14132,
     "title": "Fetch release notes for the Gradle Wrapper"
+  },
+  {
+    "repository": "dependabot/dependabot-core",
+    "number": 13999,
+    "title": "Consider JRE/JDK suffixes and semantics for Maven/Gradle"
   }
 ]
