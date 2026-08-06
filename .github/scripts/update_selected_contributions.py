@@ -117,13 +117,23 @@ def _escape_link_text(value: str) -> str:
 
 
 def format_contributions(items: list[dict[str, Any]]) -> str:
-    lines = []
+    contributions_by_repository: dict[str, list[str]] = {}
     for item in items:
         repository = _repository_name(str(item["repository_url"]))
         number = int(item["number"])
         title = _escape_link_text(str(item["title"]))
         url = _pull_request_url(item)
-        lines.append(f"- [{repository}#{number} — {title}]({url})")
+        contributions_by_repository.setdefault(repository, []).append(
+            f"- [#{number} — {title}]({url})"
+        )
+
+    lines = []
+    for repository, contributions in contributions_by_repository.items():
+        if lines:
+            lines.append("")
+        lines.append(f"### [{repository}](https://github.com/{repository})")
+        lines.append("")
+        lines.extend(contributions)
     return "\n".join(lines)
 
 

@@ -96,21 +96,41 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
         self.assertEqual("Bearer test-token", request.get_header("Authorization"))
         self.assertEqual(30, timeout)
 
-    def test_formats_repository_number_and_escapes_title(self) -> None:
+    def test_groups_contributions_by_repository_and_escapes_title(self) -> None:
         formatted = UPDATER.format_contributions(
             [
                 contribution(
                     repository="dependabot/dependabot-core",
                     number=123,
                     title="Handle [quoted] \\ values",
+                    merged_at="2026-03-01T00:00:00Z",
+                ),
+                contribution(
+                    repository="github/advisory-database",
+                    number=456,
+                    title="Update advisory",
+                    merged_at="2026-02-01T00:00:00Z",
+                ),
+                contribution(
+                    repository="dependabot/dependabot-core",
+                    number=122,
+                    title="Improve updater",
                     merged_at="2026-01-01T00:00:00Z",
-                )
+                ),
             ]
         )
 
         self.assertEqual(
-            "- [dependabot/dependabot-core#123 — Handle \\[quoted\\] \\\\ values]"
-            "(https://github.com/dependabot/dependabot-core/pull/123)",
+            "### [dependabot/dependabot-core]"
+            "(https://github.com/dependabot/dependabot-core)\n\n"
+            "- [#123 — Handle \\[quoted\\] \\\\ values]"
+            "(https://github.com/dependabot/dependabot-core/pull/123)\n"
+            "- [#122 — Improve updater]"
+            "(https://github.com/dependabot/dependabot-core/pull/122)\n\n"
+            "### [github/advisory-database]"
+            "(https://github.com/github/advisory-database)\n\n"
+            "- [#456 — Update advisory]"
+            "(https://github.com/github/advisory-database/pull/456)",
             formatted,
         )
 
