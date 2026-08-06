@@ -7,8 +7,9 @@ on:
     paths:
       - README.md
       - .github/data/highlighted-contributions.json
-      - .github/scripts/requirements.txt
+      - .github/scripts/pyproject.toml
       - .github/scripts/update_selected_contributions.py
+      - .github/scripts/uv.lock
       - .github/workflows/update-selected-contributions.yml
       - .github/scripts/tests/test_update_selected_contributions.py
   schedule:
@@ -30,11 +31,18 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install updater dependencies
-        run: python3 -m pip install --requirement .github/scripts/requirements.txt
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.12.1"
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: .github/scripts/uv.lock
 
       - name: Run updater tests
-        run: python3 -m unittest discover -s .github/scripts/tests -v
+        run: >-
+          uv run --project .github/scripts --locked
+          python -m unittest discover -s .github/scripts/tests -v
 
   update:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
@@ -48,14 +56,21 @@ jobs:
         with:
           ref: ${{ github.event.repository.default_branch }}
 
-      - name: Install updater dependencies
-        run: python3 -m pip install --requirement .github/scripts/requirements.txt
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.12.1"
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: .github/scripts/uv.lock
 
       - name: Update profile content
         env:
           GITHUB_TOKEN: ${{ github.token }}
           PROFILE_USERNAME: ${{ github.repository_owner }}
-        run: python3 .github/scripts/update_selected_contributions.py README.md
+        run: >-
+          uv run --project .github/scripts --locked
+          python .github/scripts/update_selected_contributions.py README.md
 
       - name: Commit changes
         env:
