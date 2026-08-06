@@ -68,6 +68,12 @@ HIGHLIGHTED_CONTRIBUTIONS = (
         "Fix misleading Terraform registry error when TLS certificate verification fails",
         "https://github.com/dependabot/dependabot-core/pull/15131",
     ),
+    (
+        "dependabot/dependabot-core",
+        14344,
+        "Maven: skip unresolvable properties",
+        "https://github.com/dependabot/dependabot-core/pull/14344",
+    ),
 )
 
 
