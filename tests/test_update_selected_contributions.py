@@ -96,6 +96,31 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
         self.assertEqual("Bearer test-token", request.get_header("Authorization"))
         self.assertEqual(30, timeout)
 
+    def test_rejects_incomplete_search_results(self) -> None:
+        def fake_open(_request, timeout):
+            self.assertEqual(30, timeout)
+            return FakeResponse(
+                {
+                    "total_count": 1,
+                    "incomplete_results": True,
+                    "items": [
+                        contribution(
+                            repository="example/incomplete",
+                            number=1,
+                            title="Incomplete",
+                            merged_at="2026-01-01T00:00:00Z",
+                        )
+                    ],
+                }
+            )
+
+        with self.assertRaisesRegex(RuntimeError, "incomplete search results"):
+            UPDATER.fetch_contributions(
+                username="yeikel",
+                limit=1,
+                open_url=fake_open,
+            )
+
     def test_groups_contributions_by_repository_and_escapes_title(self) -> None:
         formatted = UPDATER.format_contributions(
             [
@@ -155,6 +180,42 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             formatted,
         )
         self.assertEqual(1, formatted.count("/pull/14812"))
+
+    def test_highlighted_contribution_does_not_consume_recent_slot(self) -> None:
+        items = [
+            contribution(
+                repository="dependabot/dependabot-core",
+                number=14812,
+                title="Add support for the Maven Wrapper",
+                merged_at="2026-04-01T00:00:00Z",
+            ),
+            contribution(
+                repository="example/one",
+                number=3,
+                title="First recent contribution",
+                merged_at="2026-03-01T00:00:00Z",
+            ),
+            contribution(
+                repository="example/two",
+                number=2,
+                title="Second recent contribution",
+                merged_at="2026-02-01T00:00:00Z",
+            ),
+            contribution(
+                repository="example/three",
+                number=1,
+                title="Third recent contribution",
+                merged_at="2026-01-01T00:00:00Z",
+            ),
+        ]
+
+        selected = UPDATER.select_recent_contributions(
+            items,
+            limit=3,
+            highlighted_contributions=UPDATER.HIGHLIGHTED_CONTRIBUTIONS,
+        )
+
+        self.assertEqual([3, 2, 1], [item["number"] for item in selected])
 
     def test_derives_skills_from_unique_repository_languages(self) -> None:
         items = [

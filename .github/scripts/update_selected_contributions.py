@@ -83,6 +83,8 @@ def _request_page(
 
     if not isinstance(payload.get("items"), list):
         raise RuntimeError("GitHub returned an unexpected search response")
+    if payload.get("incomplete_results") is True:
+        raise RuntimeError("GitHub returned incomplete search results")
     return payload
 
 
@@ -163,6 +165,30 @@ def _pull_request_url(item: dict[str, Any]) -> str:
 def _escape_link_text(value: str) -> str:
     normalized = " ".join(value.split())
     return normalized.replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]")
+
+
+def select_recent_contributions(
+    items: list[dict[str, Any]],
+    limit: int,
+    highlighted_contributions: tuple[tuple[str, int, str, str], ...] = (),
+) -> list[dict[str, Any]]:
+    """Select recent non-highlighted PRs so pinned entries do not consume slots."""
+    if not 1 <= limit <= 10:
+        raise ValueError("limit must be between 1 and 10")
+
+    highlighted_keys = {
+        (repository, number)
+        for repository, number, _title, _url in highlighted_contributions
+    }
+    selected = []
+    for item in items:
+        key = (_repository_name(str(item["repository_url"])), int(item["number"]))
+        if key in highlighted_keys:
+            continue
+        selected.append(item)
+        if len(selected) == limit:
+            break
+    return selected
 
 
 def fetch_contribution_skills(
@@ -364,7 +390,11 @@ def main() -> int:
         username=args.username,
         token=token,
     )
-    contributions = all_contributions[: args.limit]
+    contributions = select_recent_contributions(
+        all_contributions,
+        args.limit,
+        HIGHLIGHTED_CONTRIBUTIONS,
+    )
     skills = fetch_contribution_skills(
         all_contributions,
         username=args.username,
