@@ -35,6 +35,7 @@ DEFAULT_HIGHLIGHTS_PATH = (
     Path(__file__).resolve().parents[1] / "data" / "highlighted-contributions.json"
 )
 HighlightedContribution = tuple[str, int, str, str]
+SkillRepository = tuple[str, str]
 
 
 def load_highlighted_contributions(
@@ -254,21 +255,27 @@ def fetch_contribution_skills(
     token: str | None = None,
     open_url: Callable[..., Any] | None = None,
     max_repositories: int = MAX_SKILL_REPOSITORIES,
-) -> dict[str, list[str]]:
-    """Group contributed repositories by their primary GitHub language."""
+    highlighted_contributions: tuple[HighlightedContribution, ...] = (),
+) -> dict[str, list[SkillRepository]]:
+    """Group repositories and meaningful contribution links by language."""
     if max_repositories < 1:
         raise ValueError("max_repositories must be positive")
+
+    meaningful_contribution_urls: dict[str, str] = {}
+    for repository, _number, _title, url in highlighted_contributions:
+        meaningful_contribution_urls.setdefault(repository, url)
 
     repository_urls: dict[str, str] = {}
     for item in items:
         repository_url = str(item["repository_url"])
         repository = _repository_name(repository_url)
         repository_urls.setdefault(repository, repository_url)
+        meaningful_contribution_urls.setdefault(repository, _pull_request_url(item))
         if len(repository_urls) >= max_repositories:
             break
 
     opener = open_url or urlopen
-    repositories_by_language: dict[str, list[str]] = {}
+    repositories_by_language: dict[str, list[SkillRepository]] = {}
     for repository, repository_url in repository_urls.items():
         try:
             payload = _request_json(
@@ -287,7 +294,9 @@ def fetch_contribution_skills(
             continue
         if not isinstance(language, str) or not language.strip():
             raise RuntimeError(f"GitHub returned an unexpected language for {repository}")
-        repositories_by_language.setdefault(language, []).append(repository)
+        repositories_by_language.setdefault(language, []).append(
+            (repository, meaningful_contribution_urls[repository])
+        )
 
     if not repositories_by_language:
         raise RuntimeError("GitHub returned no repository language metadata")
@@ -300,7 +309,7 @@ def fetch_contribution_skills(
 
 
 def format_skills(
-    repositories_by_language: dict[str, list[str]],
+    repositories_by_language: dict[str, list[SkillRepository]],
     max_skills: int = MAX_SKILLS,
     max_repositories_per_skill: int = MAX_REPOSITORIES_PER_SKILL,
 ) -> str:
@@ -316,14 +325,16 @@ def format_skills(
         raise RuntimeError("No contribution skills are available to format")
 
     lines = [
-        "Primary languages across public repositories in my recent merged contribution history:",
+        "Primary languages across public repositories in my recent merged contribution "
+        "history. Each repository links to a meaningful contribution: a curated highlight "
+        "when available, otherwise my most recently merged contribution:",
         "",
     ]
     for language, repositories in ranked_languages:
         displayed_repositories = repositories[:max_repositories_per_skill]
         repository_links = ", ".join(
-            f"[{repository}](https://github.com/{repository})"
-            for repository in displayed_repositories
+            f"[{repository}]({contribution_url})"
+            for repository, contribution_url in displayed_repositories
         )
         additional_count = len(repositories) - len(displayed_repositories)
         repository_word = "repository" if additional_count == 1 else "repositories"
@@ -463,6 +474,7 @@ def main() -> int:
         all_contributions,
         username=args.username,
         token=token,
+        highlighted_contributions=highlighted_contributions,
     )
     current = args.readme.read_text(encoding="utf-8")
     updated = update_readme_text(

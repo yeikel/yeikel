@@ -306,12 +306,31 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             username="yeikel",
             token="test-token",
             open_url=fake_open,
+            highlighted_contributions=(
+                (
+                    "example/ruby",
+                    99,
+                    "Curated Ruby contribution",
+                    "https://github.com/example/ruby/pull/99",
+                ),
+            ),
         )
 
         self.assertEqual(
             {
-                "Java": ["example/java-one", "example/java-two"],
-                "Ruby": ["example/ruby"],
+                "Java": [
+                    (
+                        "example/java-one",
+                        "https://github.com/example/java-one/pull/3",
+                    ),
+                    (
+                        "example/java-two",
+                        "https://github.com/example/java-two/pull/4",
+                    ),
+                ],
+                "Ruby": [
+                    ("example/ruby", "https://github.com/example/ruby/pull/99")
+                ],
             },
             skills,
         )
@@ -327,33 +346,43 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
     def test_formats_ranked_skills_with_repository_evidence(self) -> None:
         formatted = UPDATER.format_skills(
             {
-                "Ruby": ["dependabot/dependabot-core"],
+                "Ruby": [
+                    (
+                        "dependabot/dependabot-core",
+                        "https://github.com/dependabot/dependabot-core/pull/14812",
+                    )
+                ],
                 "Java": [
-                    "example/one",
-                    "example/two",
-                    "example/three",
-                    "example/four",
+                    ("example/one", "https://github.com/example/one/pull/1"),
+                    ("example/two", "https://github.com/example/two/pull/2"),
+                    ("example/three", "https://github.com/example/three/pull/3"),
+                    ("example/four", "https://github.com/example/four/pull/4"),
                 ],
             }
         )
 
         self.assertEqual(
-            "Primary languages across public repositories in my recent merged "
-            "contribution history:\n\n"
-            "- **Java** — [example/one](https://github.com/example/one), "
-            "[example/two](https://github.com/example/two), "
-            "[example/three](https://github.com/example/three) "
+            "Primary languages across public repositories in my recent merged contribution "
+            "history. Each repository links to a meaningful contribution: a curated highlight "
+            "when available, otherwise my most recently merged contribution:\n\n"
+            "- **Java** — [example/one](https://github.com/example/one/pull/1), "
+            "[example/two](https://github.com/example/two/pull/2), "
+            "[example/three](https://github.com/example/three/pull/3) "
             "(+1 more repository)\n"
             "- **Ruby** — [dependabot/dependabot-core]"
-            "(https://github.com/dependabot/dependabot-core)",
+            "(https://github.com/dependabot/dependabot-core/pull/14812)",
             formatted,
         )
 
     def test_prefers_more_recent_language_when_repository_counts_tie(self) -> None:
         formatted = UPDATER.format_skills(
             {
-                "Rust": ["example/recent"],
-                "CSS": ["example/older"],
+                "Rust": [
+                    ("example/recent", "https://github.com/example/recent/pull/2")
+                ],
+                "CSS": [
+                    ("example/older", "https://github.com/example/older/pull/1")
+                ],
             },
             max_skills=1,
         )

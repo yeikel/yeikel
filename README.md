@@ -12,16 +12,16 @@ I'm especially interested in distributed systems—their architecture, reliabili
 
 <!-- contribution-skills:start -->
 <!-- This section is derived automatically from public contribution repositories. -->
-Primary languages across public repositories in my recent merged contribution history:
+Primary languages across public repositories in my recent merged contribution history. Each repository links to a meaningful contribution: a curated highlight when available, otherwise my most recently merged contribution:
 
-- **Java** — [vert-x3/vertx-kafka-client](https://github.com/vert-x3/vertx-kafka-client), [vert-x3/vertx-jdbc-client](https://github.com/vert-x3/vertx-jdbc-client), [eclipse-vertx/vertx-junit5](https://github.com/eclipse-vertx/vertx-junit5) (+53 more repositories)
-- **JavaScript** — [SchemaStore/schemastore](https://github.com/SchemaStore/schemastore), [amannn/action-semantic-pull-request](https://github.com/amannn/action-semantic-pull-request), [fastify/github-action-merge-dependabot](https://github.com/fastify/github-action-merge-dependabot) (+5 more repositories)
-- **TypeScript** — [kafbat/kafka-ui](https://github.com/kafbat/kafka-ui), [github/docs](https://github.com/github/docs), [gradle-update/update-gradle-wrapper-action](https://github.com/gradle-update/update-gradle-wrapper-action) (+4 more repositories)
-- **Ruby** — [dependabot/dependabot-core](https://github.com/dependabot/dependabot-core), [excon/excon](https://github.com/excon/excon), [deitch/docker_registry2](https://github.com/deitch/docker_registry2) (+1 more repository)
-- **Go** — [cbrgm/cleanup-stale-branches-action](https://github.com/cbrgm/cleanup-stale-branches-action), [opencontainers/distribution-spec](https://github.com/opencontainers/distribution-spec), [americanexpress/earlybird](https://github.com/americanexpress/earlybird) (+1 more repository)
-- **Kotlin** — [oshai/kotlin-logging](https://github.com/oshai/kotlin-logging), [adobe/S3Mock](https://github.com/adobe/S3Mock), [jasync-sql/jasync-sql](https://github.com/jasync-sql/jasync-sql)
-- **Shell** — [dependabot/smoke-tests](https://github.com/dependabot/smoke-tests)
-- **MDX** — [lycheeverse/lycheeverse.github.io](https://github.com/lycheeverse/lycheeverse.github.io)
+- **Java** — [vert-x3/vertx-kafka-client](https://github.com/vert-x3/vertx-kafka-client/pull/318), [vert-x3/vertx-jdbc-client](https://github.com/vert-x3/vertx-jdbc-client/pull/346), [eclipse-vertx/vertx-junit5](https://github.com/eclipse-vertx/vertx-junit5/pull/150) (+53 more repositories)
+- **JavaScript** — [SchemaStore/schemastore](https://github.com/SchemaStore/schemastore/pull/5588), [amannn/action-semantic-pull-request](https://github.com/amannn/action-semantic-pull-request/pull/231), [fastify/github-action-merge-dependabot](https://github.com/fastify/github-action-merge-dependabot/pull/415) (+5 more repositories)
+- **TypeScript** — [kafbat/kafka-ui](https://github.com/kafbat/kafka-ui/pull/1869), [github/docs](https://github.com/github/docs/pull/41793), [gradle-update/update-gradle-wrapper-action](https://github.com/gradle-update/update-gradle-wrapper-action/pull/535) (+4 more repositories)
+- **Ruby** — [dependabot/dependabot-core](https://github.com/dependabot/dependabot-core/pull/14812), [excon/excon](https://github.com/excon/excon/pull/900), [deitch/docker_registry2](https://github.com/deitch/docker_registry2/pull/85) (+1 more repository)
+- **Go** — [cbrgm/cleanup-stale-branches-action](https://github.com/cbrgm/cleanup-stale-branches-action/pull/119), [opencontainers/distribution-spec](https://github.com/opencontainers/distribution-spec/pull/465), [americanexpress/earlybird](https://github.com/americanexpress/earlybird/pull/59) (+1 more repository)
+- **Kotlin** — [oshai/kotlin-logging](https://github.com/oshai/kotlin-logging/pull/301), [adobe/S3Mock](https://github.com/adobe/S3Mock/pull/1082), [jasync-sql/jasync-sql](https://github.com/jasync-sql/jasync-sql/pull/321)
+- **Shell** — [dependabot/smoke-tests](https://github.com/dependabot/smoke-tests/pull/522)
+- **MDX** — [lycheeverse/lycheeverse.github.io](https://github.com/lycheeverse/lycheeverse.github.io/pull/141)
 <!-- contribution-skills:end -->
 
 ## Agentic AI
