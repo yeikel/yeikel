@@ -4,6 +4,22 @@ I'm a software engineer who cares about building high-quality, reliable software
 
 My work spans software architecture, developer experience, dependency automation, CI/CD, reliability, security, and open source. I enjoy understanding difficult systems, fixing problems at their source, and leaving codebases better than I found them.
 
+## Skills
+
+<!-- contribution-skills:start -->
+<!-- This section is derived automatically from public contribution repositories. -->
+Primary languages across public repositories in my recent merged contribution history:
+
+- **Java** — [vert-x3/vertx-kafka-client](https://github.com/vert-x3/vertx-kafka-client), [vert-x3/vertx-jdbc-client](https://github.com/vert-x3/vertx-jdbc-client), [eclipse-vertx/vertx-junit5](https://github.com/eclipse-vertx/vertx-junit5) (+53 more repositories)
+- **JavaScript** — [SchemaStore/schemastore](https://github.com/SchemaStore/schemastore), [amannn/action-semantic-pull-request](https://github.com/amannn/action-semantic-pull-request), [fastify/github-action-merge-dependabot](https://github.com/fastify/github-action-merge-dependabot) (+5 more repositories)
+- **TypeScript** — [kafbat/kafka-ui](https://github.com/kafbat/kafka-ui), [github/docs](https://github.com/github/docs), [gradle-update/update-gradle-wrapper-action](https://github.com/gradle-update/update-gradle-wrapper-action) (+4 more repositories)
+- **Ruby** — [dependabot/dependabot-core](https://github.com/dependabot/dependabot-core), [excon/excon](https://github.com/excon/excon), [deitch/docker_registry2](https://github.com/deitch/docker_registry2) (+1 more repository)
+- **Go** — [cbrgm/cleanup-stale-branches-action](https://github.com/cbrgm/cleanup-stale-branches-action), [opencontainers/distribution-spec](https://github.com/opencontainers/distribution-spec), [americanexpress/earlybird](https://github.com/americanexpress/earlybird) (+1 more repository)
+- **Kotlin** — [oshai/kotlin-logging](https://github.com/oshai/kotlin-logging), [adobe/S3Mock](https://github.com/adobe/S3Mock), [jasync-sql/jasync-sql](https://github.com/jasync-sql/jasync-sql)
+- **Shell** — [dependabot/smoke-tests](https://github.com/dependabot/smoke-tests)
+- **MDX** — [lycheeverse/lycheeverse.github.io](https://github.com/lycheeverse/lycheeverse.github.io)
+<!-- contribution-skills:end -->
+
 ## Open source contributions
 
 I'm a regular contributor to [Dependabot Core](https://github.com/dependabot/dependabot-core). My [contributions](https://github.com/dependabot/dependabot-core/commits?author=yeikel) span multiple package ecosystems, reliability improvements, and dependency-management behavior.

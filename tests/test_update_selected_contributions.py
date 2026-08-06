@@ -156,6 +156,104 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
         )
         self.assertEqual(1, formatted.count("/pull/14812"))
 
+    def test_derives_skills_from_unique_repository_languages(self) -> None:
+        items = [
+            contribution(
+                repository="example/java-one",
+                number=3,
+                title="Newest",
+                merged_at="2026-03-01T00:00:00Z",
+            ),
+            contribution(
+                repository="example/ruby",
+                number=2,
+                title="Middle",
+                merged_at="2026-02-01T00:00:00Z",
+            ),
+            contribution(
+                repository="example/java-one",
+                number=1,
+                title="Duplicate repository",
+                merged_at="2026-01-01T00:00:00Z",
+            ),
+            contribution(
+                repository="example/java-two",
+                number=4,
+                title="Older Java repository",
+                merged_at="2025-12-01T00:00:00Z",
+            ),
+        ]
+        languages = {
+            "https://api.github.com/repos/example/java-one": "Java",
+            "https://api.github.com/repos/example/ruby": "Ruby",
+            "https://api.github.com/repos/example/java-two": "Java",
+        }
+        requests = []
+
+        def fake_open(request, timeout):
+            requests.append((request, timeout))
+            return FakeResponse({"language": languages[request.full_url]})
+
+        skills = UPDATER.fetch_contribution_skills(
+            items,
+            username="yeikel",
+            token="test-token",
+            open_url=fake_open,
+        )
+
+        self.assertEqual(
+            {
+                "Java": ["example/java-one", "example/java-two"],
+                "Ruby": ["example/ruby"],
+            },
+            skills,
+        )
+        self.assertEqual(3, len(requests))
+        self.assertTrue(
+            all(
+                request.get_header("Authorization") == "Bearer test-token"
+                and timeout == 30
+                for request, timeout in requests
+            )
+        )
+
+    def test_formats_ranked_skills_with_repository_evidence(self) -> None:
+        formatted = UPDATER.format_skills(
+            {
+                "Ruby": ["dependabot/dependabot-core"],
+                "Java": [
+                    "example/one",
+                    "example/two",
+                    "example/three",
+                    "example/four",
+                ],
+            }
+        )
+
+        self.assertEqual(
+            "Primary languages across public repositories in my recent merged "
+            "contribution history:\n\n"
+            "- **Java** — [example/one](https://github.com/example/one), "
+            "[example/two](https://github.com/example/two), "
+            "[example/three](https://github.com/example/three) "
+            "(+1 more repository)\n"
+            "- **Ruby** — [dependabot/dependabot-core]"
+            "(https://github.com/dependabot/dependabot-core)",
+            formatted,
+        )
+
+    def test_prefers_more_recent_language_when_repository_counts_tie(self) -> None:
+        formatted = UPDATER.format_skills(
+            {
+                "Rust": ["example/recent"],
+                "CSS": ["example/older"],
+            },
+            max_skills=1,
+        )
+
+        self.assertIn("**Rust**", formatted)
+        self.assertNotIn("**CSS**", formatted)
+
     def test_replaces_only_the_generated_section(self) -> None:
         original = (
             "Before\n"
@@ -177,6 +275,30 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             updated,
         )
         self.assertEqual(updated, UPDATER.update_readme_text(updated, "- new"))
+
+    def test_updates_contribution_and_skill_sections(self) -> None:
+        original = (
+            f"{UPDATER.SKILLS_START_MARKER}\n"
+            "- old skill\n"
+            f"{UPDATER.SKILLS_END_MARKER}\n"
+            f"{UPDATER.START_MARKER}\n"
+            "- old contribution\n"
+            f"{UPDATER.END_MARKER}\n"
+        )
+
+        updated = UPDATER.update_readme_text(original, "- contribution", "- skill")
+
+        self.assertEqual(
+            f"{UPDATER.SKILLS_START_MARKER}\n"
+            f"{UPDATER.SKILLS_GENERATED_NOTICE}\n"
+            "- skill\n"
+            f"{UPDATER.SKILLS_END_MARKER}\n"
+            f"{UPDATER.START_MARKER}\n"
+            f"{UPDATER.GENERATED_NOTICE}\n"
+            "- contribution\n"
+            f"{UPDATER.END_MARKER}\n",
+            updated,
+        )
 
     def test_rejects_missing_markers(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "marker pair"):

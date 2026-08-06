@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 from typing import Any, Callable
+from urllib.error import HTTPError
 from urllib.parse import urlencode, urlparse
 from urllib.request import Request, urlopen
 
@@ -20,8 +21,16 @@ GENERATED_NOTICE = (
     "<!-- This section is updated automatically by "
     ".github/workflows/update-selected-contributions.yml. -->"
 )
+SKILLS_START_MARKER = "<!-- contribution-skills:start -->"
+SKILLS_END_MARKER = "<!-- contribution-skills:end -->"
+SKILLS_GENERATED_NOTICE = (
+    "<!-- This section is derived automatically from public contribution repositories. -->"
+)
 PER_PAGE = 100
 MAX_SEARCH_RESULTS = 1_000
+MAX_SKILL_REPOSITORIES = 100
+MAX_SKILLS = 8
+MAX_REPOSITORIES_PER_SKILL = 3
 HIGHLIGHTED_CONTRIBUTIONS = (
     (
         "dependabot/dependabot-core",
@@ -32,15 +41,13 @@ HIGHLIGHTED_CONTRIBUTIONS = (
 )
 
 
-def _request_page(
+def _request_json(
     *,
+    url: str,
     username: str,
-    page: int,
     token: str | None,
     open_url: Callable[..., Any],
 ) -> dict[str, Any]:
-    query = f"is:pr author:{username} is:merged is:public -user:{username}"
-    url = f"{API_URL}?{urlencode({'q': query, 'sort': 'updated', 'order': 'desc', 'per_page': PER_PAGE, 'page': page})}"
     headers = {
         "Accept": "application/vnd.github+json",
         "User-Agent": f"{username}-profile-readme-updater",
@@ -53,21 +60,38 @@ def _request_page(
     with open_url(request, timeout=30) as response:
         payload = json.loads(response.read().decode("utf-8"))
 
-    if not isinstance(payload, dict) or not isinstance(payload.get("items"), list):
+    if not isinstance(payload, dict):
+        raise RuntimeError("GitHub returned an unexpected API response")
+    return payload
+
+
+def _request_page(
+    *,
+    username: str,
+    page: int,
+    token: str | None,
+    open_url: Callable[..., Any],
+) -> dict[str, Any]:
+    query = f"is:pr author:{username} is:merged is:public -user:{username}"
+    url = f"{API_URL}?{urlencode({'q': query, 'sort': 'updated', 'order': 'desc', 'per_page': PER_PAGE, 'page': page})}"
+    payload = _request_json(
+        url=url,
+        username=username,
+        token=token,
+        open_url=open_url,
+    )
+
+    if not isinstance(payload.get("items"), list):
         raise RuntimeError("GitHub returned an unexpected search response")
     return payload
 
 
-def fetch_contributions(
+def fetch_all_contributions(
     username: str,
-    limit: int,
     token: str | None = None,
     open_url: Callable[..., Any] | None = None,
 ) -> list[dict[str, Any]]:
-    """Return the most recently merged public PRs outside the user's repos."""
-    if not 1 <= limit <= 10:
-        raise ValueError("limit must be between 1 and 10")
-
+    """Return merged public PRs outside the user's repos, newest first."""
     opener = open_url or urlopen
     items: list[dict[str, Any]] = []
     total_count = MAX_SEARCH_RESULTS
@@ -98,7 +122,24 @@ def fetch_contributions(
 
     if not merged_items:
         raise RuntimeError("GitHub returned no merged public contributions")
-    return merged_items[:limit]
+    return merged_items
+
+
+def fetch_contributions(
+    username: str,
+    limit: int,
+    token: str | None = None,
+    open_url: Callable[..., Any] | None = None,
+) -> list[dict[str, Any]]:
+    """Return the most recently merged public PRs outside the user's repos."""
+    if not 1 <= limit <= 10:
+        raise ValueError("limit must be between 1 and 10")
+
+    return fetch_all_contributions(
+        username=username,
+        token=token,
+        open_url=open_url,
+    )[:limit]
 
 
 def _repository_name(repository_url: str) -> str:
@@ -122,6 +163,94 @@ def _pull_request_url(item: dict[str, Any]) -> str:
 def _escape_link_text(value: str) -> str:
     normalized = " ".join(value.split())
     return normalized.replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]")
+
+
+def fetch_contribution_skills(
+    items: list[dict[str, Any]],
+    username: str,
+    token: str | None = None,
+    open_url: Callable[..., Any] | None = None,
+    max_repositories: int = MAX_SKILL_REPOSITORIES,
+) -> dict[str, list[str]]:
+    """Group contributed repositories by their primary GitHub language."""
+    if max_repositories < 1:
+        raise ValueError("max_repositories must be positive")
+
+    repository_urls: dict[str, str] = {}
+    for item in items:
+        repository_url = str(item["repository_url"])
+        repository = _repository_name(repository_url)
+        repository_urls.setdefault(repository, repository_url)
+        if len(repository_urls) >= max_repositories:
+            break
+
+    opener = open_url or urlopen
+    repositories_by_language: dict[str, list[str]] = {}
+    for repository, repository_url in repository_urls.items():
+        try:
+            payload = _request_json(
+                url=repository_url,
+                username=username,
+                token=token,
+                open_url=opener,
+            )
+        except HTTPError as error:
+            if error.code in {404, 410}:
+                continue
+            raise
+
+        language = payload.get("language")
+        if language is None:
+            continue
+        if not isinstance(language, str) or not language.strip():
+            raise RuntimeError(f"GitHub returned an unexpected language for {repository}")
+        repositories_by_language.setdefault(language, []).append(repository)
+
+    if not repositories_by_language:
+        raise RuntimeError("GitHub returned no repository language metadata")
+
+    ranked_languages = sorted(
+        repositories_by_language.items(),
+        key=lambda entry: -len(entry[1]),
+    )
+    return dict(ranked_languages)
+
+
+def format_skills(
+    repositories_by_language: dict[str, list[str]],
+    max_skills: int = MAX_SKILLS,
+    max_repositories_per_skill: int = MAX_REPOSITORIES_PER_SKILL,
+) -> str:
+    """Render repository-backed language skills as Markdown."""
+    if max_skills < 1 or max_repositories_per_skill < 1:
+        raise ValueError("skill display limits must be positive")
+
+    ranked_languages = sorted(
+        repositories_by_language.items(),
+        key=lambda entry: -len(entry[1]),
+    )[:max_skills]
+    if not ranked_languages:
+        raise RuntimeError("No contribution skills are available to format")
+
+    lines = [
+        "Primary languages across public repositories in my recent merged contribution history:",
+        "",
+    ]
+    for language, repositories in ranked_languages:
+        displayed_repositories = repositories[:max_repositories_per_skill]
+        repository_links = ", ".join(
+            f"[{repository}](https://github.com/{repository})"
+            for repository in displayed_repositories
+        )
+        additional_count = len(repositories) - len(displayed_repositories)
+        repository_word = "repository" if additional_count == 1 else "repositories"
+        additional = (
+            f" (+{additional_count} more {repository_word})"
+            if additional_count
+            else ""
+        )
+        lines.append(f"- **{language}** — {repository_links}{additional}")
+    return "\n".join(lines)
 
 
 def format_contributions(
@@ -158,22 +287,59 @@ def format_contributions(
     return "\n".join(lines)
 
 
-def update_readme_text(readme: str, contribution_list: str) -> str:
-    if readme.count(START_MARKER) != 1 or readme.count(END_MARKER) != 1:
-        raise RuntimeError("README must contain exactly one contribution marker pair")
+def _update_generated_section(
+    document: str,
+    *,
+    start_marker: str,
+    end_marker: str,
+    notice: str,
+    content: str,
+    section_name: str,
+) -> str:
+    if document.count(start_marker) != 1 or document.count(end_marker) != 1:
+        raise RuntimeError(
+            f"README must contain exactly one {section_name} marker pair"
+        )
 
-    before, marker, remainder = readme.partition(START_MARKER)
-    _, end_marker, after = remainder.partition(END_MARKER)
-    if not marker or not end_marker:
-        raise RuntimeError("README contribution markers are missing or out of order")
+    before, marker, remainder = document.partition(start_marker)
+    _, found_end_marker, after = remainder.partition(end_marker)
+    if not marker or not found_end_marker:
+        raise RuntimeError(
+            f"README {section_name} markers are missing or out of order"
+        )
 
     generated = (
-        f"{START_MARKER}\n"
-        f"{GENERATED_NOTICE}\n"
-        f"{contribution_list}\n"
-        f"{END_MARKER}"
+        f"{start_marker}\n"
+        f"{notice}\n"
+        f"{content}\n"
+        f"{end_marker}"
     )
     return f"{before}{generated}{after}"
+
+
+def update_readme_text(
+    readme: str,
+    contribution_list: str,
+    skill_list: str | None = None,
+) -> str:
+    updated = _update_generated_section(
+        readme,
+        start_marker=START_MARKER,
+        end_marker=END_MARKER,
+        notice=GENERATED_NOTICE,
+        content=contribution_list,
+        section_name="contribution",
+    )
+    if skill_list is not None:
+        updated = _update_generated_section(
+            updated,
+            start_marker=SKILLS_START_MARKER,
+            end_marker=SKILLS_END_MARKER,
+            notice=SKILLS_GENERATED_NOTICE,
+            content=skill_list,
+            section_name="skills",
+        )
+    return updated
 
 
 def parse_args() -> argparse.Namespace:
@@ -193,19 +359,26 @@ def main() -> int:
     if not args.username:
         raise SystemExit("--username or PROFILE_USERNAME is required")
 
-    contributions = fetch_contributions(
+    token = os.environ.get("GITHUB_TOKEN")
+    all_contributions = fetch_all_contributions(
         username=args.username,
-        limit=args.limit,
-        token=os.environ.get("GITHUB_TOKEN"),
+        token=token,
+    )
+    contributions = all_contributions[: args.limit]
+    skills = fetch_contribution_skills(
+        all_contributions,
+        username=args.username,
+        token=token,
     )
     current = args.readme.read_text(encoding="utf-8")
     updated = update_readme_text(
         current,
         format_contributions(contributions, HIGHLIGHTED_CONTRIBUTIONS),
+        format_skills(skills),
     )
 
     if updated == current:
-        print("Selected contributions are already current")
+        print("Profile content is already current")
         return 0
 
     with args.readme.open("w", encoding="utf-8", newline="\n") as readme_file:
