@@ -50,6 +50,12 @@ HIGHLIGHTED_CONTRIBUTIONS = (
         "Disable `npmMinimalAgeGate` for Yarn Berry security updates",
         "https://github.com/dependabot/dependabot-core/pull/15191",
     ),
+    (
+        "dependabot/dependabot-core",
+        15170,
+        "Pass `--config.minimumReleaseAge=0` for `pnpm` security updates to bypass pnpm-workspace.yaml",
+        "https://github.com/dependabot/dependabot-core/pull/15170",
+    ),
 )
 
 

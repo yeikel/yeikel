@@ -162,23 +162,14 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
     def test_highlights_pinned_contributions_without_duplicates(self) -> None:
         highlighted_items = [
             contribution(
-                repository="dependabot/dependabot-core",
-                number=15226,
-                title="Gate YARN_NPM_MINIMAL_AGE_GATE on Yarn 4.10+",
-                merged_at="2026-04-01T00:00:00Z",
-            ),
-            contribution(
-                repository="dependabot/dependabot-core",
-                number=15191,
-                title="Disable `npmMinimalAgeGate` for Yarn Berry security updates",
-                merged_at="2026-03-15T00:00:00Z",
-            ),
-            contribution(
-                repository="dependabot/dependabot-core",
-                number=14812,
-                title="Add support for the Maven Wrapper",
-                merged_at="2026-03-01T00:00:00Z",
-            ),
+                repository=repository,
+                number=number,
+                title=title,
+                merged_at="2026-01-01T00:00:00Z",
+            )
+            for repository, number, title, _url in reversed(
+                UPDATER.HIGHLIGHTED_CONTRIBUTIONS
+            )
         ]
 
         formatted = UPDATER.format_contributions(
@@ -187,21 +178,20 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
         )
 
         self.assertEqual(
-            "### [dependabot/dependabot-core]"
-            "(https://github.com/dependabot/dependabot-core)\n\n"
-            "- **Featured:** [#14812 — Add support for the Maven Wrapper]"
-            "(https://github.com/dependabot/dependabot-core/pull/14812)\n"
-            "- **Featured:** "
-            "[#15226 — Gate YARN_NPM_MINIMAL_AGE_GATE on Yarn 4.10+]"
-            "(https://github.com/dependabot/dependabot-core/pull/15226)\n"
-            "- **Featured:** "
-            "[#15191 — Disable `npmMinimalAgeGate` for Yarn Berry security updates]"
-            "(https://github.com/dependabot/dependabot-core/pull/15191)",
-            formatted,
+            1,
+            formatted.count(
+                "### [dependabot/dependabot-core]"
+                "(https://github.com/dependabot/dependabot-core)"
+            ),
         )
-        self.assertEqual(1, formatted.count("/pull/14812"))
-        self.assertEqual(1, formatted.count("/pull/15226"))
-        self.assertEqual(1, formatted.count("/pull/15191"))
+        previous_position = -1
+        for _repository, number, title, url in UPDATER.HIGHLIGHTED_CONTRIBUTIONS:
+            expected = f"- **Featured:** [#{number} — {title}]({url})"
+            self.assertIn(expected, formatted)
+            self.assertEqual(1, formatted.count(url))
+            position = formatted.index(expected)
+            self.assertGreater(position, previous_position)
+            previous_position = position
 
     def test_highlighted_contribution_does_not_consume_recent_slot(self) -> None:
         items = [
