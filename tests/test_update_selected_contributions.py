@@ -182,13 +182,15 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
         self.assertEqual(
             "### [dependabot/dependabot-core]"
             "(https://github.com/dependabot/dependabot-core)\n\n"
-            "- [#123 — Handle \\[quoted\\] \\\\ values]"
+            "#### Recent contributions\n\n"
+            "- [#123: Handle \\[quoted\\] \\\\ values]"
             "(https://github.com/dependabot/dependabot-core/pull/123)\n"
-            "- [#122 — Improve updater]"
+            "- [#122: Improve updater]"
             "(https://github.com/dependabot/dependabot-core/pull/122)\n\n"
             "### [github/advisory-database]"
             "(https://github.com/github/advisory-database)\n\n"
-            "- [#456 — Update advisory]"
+            "#### Recent contributions\n\n"
+            "- [#456: Update advisory]"
             "(https://github.com/github/advisory-database/pull/456)",
             formatted,
         )
@@ -211,6 +213,8 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             HIGHLIGHTED_CONTRIBUTIONS,
         )
 
+        self.assertEqual(1, formatted.count("#### Highlights"))
+        self.assertNotIn("Featured", formatted)
         self.assertEqual(
             1,
             formatted.count(
@@ -220,7 +224,7 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
         )
         previous_position = -1
         for _repository, number, title, url in HIGHLIGHTED_CONTRIBUTIONS:
-            expected = f"- **Featured:** [#{number} — {title}]({url})"
+            expected = f"- [#{number}: {title}]({url})"
             self.assertIn(expected, formatted)
             self.assertEqual(1, formatted.count(url))
             position = formatted.index(expected)
@@ -365,11 +369,11 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             "Primary languages across public repositories in my recent merged contribution "
             "history. Each repository links to a meaningful contribution: a curated highlight "
             "when available, otherwise my most recently merged contribution:\n\n"
-            "- **Java** — [example/one](https://github.com/example/one/pull/1), "
+            "- **Java:** [example/one](https://github.com/example/one/pull/1), "
             "[example/two](https://github.com/example/two/pull/2), "
             "[example/three](https://github.com/example/three/pull/3) "
             "(+1 more repository)\n"
-            "- **Ruby** — [dependabot/dependabot-core]"
+            "- **Ruby:** [dependabot/dependabot-core]"
             "(https://github.com/dependabot/dependabot-core/pull/14812)",
             formatted,
         )
@@ -387,8 +391,8 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             max_skills=1,
         )
 
-        self.assertIn("**Rust**", formatted)
-        self.assertNotIn("**CSS**", formatted)
+        self.assertIn("**Rust:**", formatted)
+        self.assertNotIn("**CSS:**", formatted)
 
     def test_replaces_only_the_generated_section(self) -> None:
         original = (

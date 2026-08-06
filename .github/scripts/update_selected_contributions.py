@@ -343,7 +343,7 @@ def format_skills(
             if additional_count
             else ""
         )
-        lines.append(f"- **{language}** — {repository_links}{additional}")
+        lines.append(f"- **{language}:** {repository_links}{additional}")
     return "\n".join(lines)
 
 
@@ -351,13 +351,17 @@ def format_contributions(
     items: list[dict[str, Any]],
     highlighted_contributions: tuple[HighlightedContribution, ...] = (),
 ) -> str:
-    contributions_by_repository: dict[str, list[str]] = {}
+    highlighted_by_repository: dict[str, list[str]] = {}
+    recent_by_repository: dict[str, list[str]] = {}
+    repository_order: list[str] = []
     highlighted_keys = set()
 
     for repository, number, title, url in highlighted_contributions:
         highlighted_keys.add((repository, number))
-        contributions_by_repository.setdefault(repository, []).append(
-            f"- **Featured:** [#{number} — {_escape_link_text(title)}]({url})"
+        if repository not in repository_order:
+            repository_order.append(repository)
+        highlighted_by_repository.setdefault(repository, []).append(
+            f"- [#{number}: {_escape_link_text(title)}]({url})"
         )
 
     for item in items:
@@ -365,19 +369,27 @@ def format_contributions(
         number = int(item["number"])
         if (repository, number) in highlighted_keys:
             continue
+        if repository not in repository_order:
+            repository_order.append(repository)
         title = _escape_link_text(str(item["title"]))
         url = _pull_request_url(item)
-        contributions_by_repository.setdefault(repository, []).append(
-            f"- [#{number} — {title}]({url})"
+        recent_by_repository.setdefault(repository, []).append(
+            f"- [#{number}: {title}]({url})"
         )
 
     lines = []
-    for repository, contributions in contributions_by_repository.items():
+    for repository in repository_order:
         if lines:
             lines.append("")
         lines.append(f"### [{repository}](https://github.com/{repository})")
-        lines.append("")
-        lines.extend(contributions)
+        highlighted = highlighted_by_repository.get(repository)
+        if highlighted:
+            lines.extend(["", "#### Highlights", ""])
+            lines.extend(highlighted)
+        recent = recent_by_repository.get(repository)
+        if recent:
+            lines.extend(["", "#### Recent contributions", ""])
+            lines.extend(recent)
     return "\n".join(lines)
 
 
