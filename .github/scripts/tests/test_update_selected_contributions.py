@@ -28,12 +28,17 @@ def contribution(
     merged_at: str,
 ) -> dict[str, object]:
     url = f"https://github.com/{repository}/pull/{number}"
+    api_url = f"https://api.github.com/repos/{repository}/pulls/{number}"
     return {
         "number": number,
         "title": title,
         "repository_url": f"https://api.github.com/repos/{repository}",
         "html_url": url,
-        "pull_request": {"html_url": url, "merged_at": merged_at},
+        "pull_request": {
+            "html_url": url,
+            "merged_at": merged_at,
+            "url": api_url,
+        },
     }
 
 
@@ -344,6 +349,94 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             )
         )
 
+    def test_excludes_low_signal_skill_contributions_and_languages(self) -> None:
+        items = [
+            contribution(
+                repository="example/dependency-only",
+                number=10,
+                title="Bump widget from 1.0.0 to 1.0.1",
+                merged_at="2026-06-01T00:00:00Z",
+            ),
+            contribution(
+                repository="example/substantial-upgrade",
+                number=11,
+                title="Upgrade framework to 2.0.0",
+                merged_at="2026-05-01T00:00:00Z",
+            ),
+            contribution(
+                repository="example/typo-only",
+                number=12,
+                title="Fix typo in README",
+                merged_at="2026-04-01T00:00:00Z",
+            ),
+            contribution(
+                repository="opencontainers/distribution-spec",
+                number=465,
+                title="Improve specification",
+                merged_at="2026-03-01T00:00:00Z",
+            ),
+            contribution(
+                repository="example/kotlin",
+                number=13,
+                title="Add new capability",
+                merged_at="2026-02-01T00:00:00Z",
+            ),
+            contribution(
+                repository="example/mdx",
+                number=14,
+                title="Document new capability",
+                merged_at="2026-01-01T00:00:00Z",
+            ),
+            contribution(
+                repository="example/go",
+                number=15,
+                title="Add JSON output",
+                merged_at="2025-12-01T00:00:00Z",
+            ),
+        ]
+        responses = {
+            "https://api.github.com/repos/example/dependency-only/pulls/10": {
+                "changed_files": 2
+            },
+            "https://api.github.com/repos/example/substantial-upgrade/pulls/11": {
+                "changed_files": 3
+            },
+            "https://api.github.com/repos/example/substantial-upgrade": {
+                "language": "Java"
+            },
+            "https://api.github.com/repos/example/kotlin": {"language": "Kotlin"},
+            "https://api.github.com/repos/example/mdx": {"language": "MDX"},
+            "https://api.github.com/repos/example/go": {"language": "Go"},
+        }
+        requests = []
+
+        def fake_open(request, timeout):
+            requests.append((request, timeout))
+            return FakeResponse(responses[request.full_url])
+
+        skills = UPDATER.fetch_contribution_skills(
+            items,
+            username="yeikel",
+            token="test-token",
+            open_url=fake_open,
+        )
+
+        self.assertEqual(
+            {
+                "Java": [
+                    (
+                        "example/substantial-upgrade",
+                        "https://github.com/example/substantial-upgrade/pull/11",
+                    )
+                ],
+                "Go": [
+                    ("example/go", "https://github.com/example/go/pull/15")
+                ],
+            },
+            skills,
+        )
+        self.assertEqual(6, len(requests))
+
     def test_formats_ranked_skills_with_repository_evidence(self) -> None:
         formatted = UPDATER.format_skills(
             {
@@ -365,7 +458,8 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
         self.assertEqual(
             "Primary languages across public repositories in my recent merged contribution "
             "history. Each repository links to a meaningful contribution: a curated highlight "
-            "when available, otherwise my most recently merged contribution:\n\n"
+            "when available, otherwise my most recently merged contribution. Small dependency "
+            "updates and typo corrections are excluded:\n\n"
             "| Language | Contribution evidence |\n"
             "| --- | --- |\n"
             "| **Java** | [example/one](https://github.com/example/one/pull/1), "

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any, Callable
 from urllib.error import HTTPError
@@ -31,6 +32,20 @@ MAX_SEARCH_RESULTS = 1_000
 MAX_SKILL_REPOSITORIES = 100
 MAX_SKILLS = 8
 MAX_REPOSITORIES_PER_SKILL = 3
+MAX_SMALL_DEPENDENCY_UPDATE_FILES = 2
+EXCLUDED_SKILL_LANGUAGES = frozenset({"Kotlin", "MDX"})
+EXCLUDED_SKILL_CONTRIBUTIONS = frozenset(
+    {("opencontainers/distribution-spec", 465)}
+)
+TYPO_CORRECTION_PATTERN = re.compile(
+    r"\b(?:grammar|misspelling|spelling|typo|typos)\b",
+    re.IGNORECASE,
+)
+DEPENDENCY_UPDATE_PATTERN = re.compile(
+    r"\b(?:bump|upgrade|upgrades|update)\b.*"
+    r"(?:\bfrom\b.+\bto\b|\bto\s+v?\d|\bversions?\b)",
+    re.IGNORECASE,
+)
 DEFAULT_HIGHLIGHTS_PATH = (
     Path(__file__).resolve().parents[1] / "data" / "highlighted-contributions.json"
 )
@@ -220,6 +235,53 @@ def _pull_request_url(item: dict[str, Any]) -> str:
     return str(url)
 
 
+def _pull_request_api_url(item: dict[str, Any]) -> str:
+    url = item["pull_request"].get("url")
+    parsed = urlparse(str(url))
+    if (
+        parsed.scheme != "https"
+        or parsed.netloc != "api.github.com"
+        or "/repos/" not in parsed.path
+        or "/pulls/" not in parsed.path
+    ):
+        raise RuntimeError(f"Unexpected pull request API URL: {url}")
+    return str(url)
+
+
+def _is_low_signal_skill_contribution(
+    item: dict[str, Any],
+    *,
+    username: str,
+    token: str | None,
+    open_url: Callable[..., Any],
+) -> bool:
+    repository = _repository_name(str(item["repository_url"]))
+    number = int(item["number"])
+    if (repository, number) in EXCLUDED_SKILL_CONTRIBUTIONS:
+        return True
+
+    title = " ".join(str(item["title"]).split())
+    if TYPO_CORRECTION_PATTERN.search(title):
+        return True
+    if not DEPENDENCY_UPDATE_PATTERN.search(title):
+        return False
+
+    payload = _request_json(
+        url=_pull_request_api_url(item),
+        username=username,
+        token=token,
+        open_url=open_url,
+    )
+    changed_files = payload.get("changed_files")
+    if (
+        not isinstance(changed_files, int)
+        or isinstance(changed_files, bool)
+        or changed_files < 0
+    ):
+        raise RuntimeError("GitHub returned an unexpected changed_files value")
+    return changed_files <= MAX_SMALL_DEPENDENCY_UPDATE_FILES
+
+
 def _escape_link_text(value: str) -> str:
     normalized = " ".join(value.split())
     return normalized.replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]")
@@ -265,16 +327,25 @@ def fetch_contribution_skills(
     for repository, _number, _title, url in highlighted_contributions:
         meaningful_contribution_urls.setdefault(repository, url)
 
+    opener = open_url or urlopen
     repository_urls: dict[str, str] = {}
     for item in items:
         repository_url = str(item["repository_url"])
         repository = _repository_name(repository_url)
+        if repository in repository_urls:
+            continue
+        if _is_low_signal_skill_contribution(
+            item,
+            username=username,
+            token=token,
+            open_url=opener,
+        ):
+            continue
         repository_urls.setdefault(repository, repository_url)
         meaningful_contribution_urls.setdefault(repository, _pull_request_url(item))
         if len(repository_urls) >= max_repositories:
             break
 
-    opener = open_url or urlopen
     repositories_by_language: dict[str, list[SkillRepository]] = {}
     for repository, repository_url in repository_urls.items():
         try:
@@ -294,6 +365,8 @@ def fetch_contribution_skills(
             continue
         if not isinstance(language, str) or not language.strip():
             raise RuntimeError(f"GitHub returned an unexpected language for {repository}")
+        if language in EXCLUDED_SKILL_LANGUAGES:
+            continue
         repositories_by_language.setdefault(language, []).append(
             (repository, meaningful_contribution_urls[repository])
         )
@@ -327,7 +400,8 @@ def format_skills(
     lines = [
         "Primary languages across public repositories in my recent merged contribution "
         "history. Each repository links to a meaningful contribution: a curated highlight "
-        "when available, otherwise my most recently merged contribution:",
+        "when available, otherwise my most recently merged contribution. Small dependency "
+        "updates and typo corrections are excluded:",
         "",
         "| Language | Contribution evidence |",
         "| --- | --- |",
