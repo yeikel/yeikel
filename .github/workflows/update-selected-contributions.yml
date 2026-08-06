@@ -9,7 +9,7 @@ on:
       - .github/data/highlighted-contributions.json
       - .github/scripts/update_selected_contributions.py
       - .github/workflows/update-selected-contributions.yml
-      - tests/test_update_selected_contributions.py
+      - .github/scripts/tests/test_update_selected_contributions.py
   schedule:
     - cron: "0 6 * * *"
       timezone: "America/New_York"
@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Run updater tests
-        run: python3 -m unittest discover -s tests -v
+        run: python3 -m unittest discover -s .github/scripts/tests -v
 
   update:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'

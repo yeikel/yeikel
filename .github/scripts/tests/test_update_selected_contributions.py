@@ -9,10 +9,7 @@ import unittest
 
 
 SCRIPT_PATH = (
-    Path(__file__).parents[1]
-    / ".github"
-    / "scripts"
-    / "update_selected_contributions.py"
+    Path(__file__).parents[1] / "update_selected_contributions.py"
 )
 SPEC = importlib.util.spec_from_file_location("update_selected_contributions", SCRIPT_PATH)
 assert SPEC and SPEC.loader
