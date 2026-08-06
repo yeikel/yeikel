@@ -10,7 +10,8 @@ on:
       - .github/workflows/update-selected-contributions.yml
       - tests/test_update_selected_contributions.py
   schedule:
-    - cron: "17 8 * * *"
+    - cron: "0 6 * * *"
+      timezone: "America/New_York"
   workflow_dispatch:
 
 permissions:
