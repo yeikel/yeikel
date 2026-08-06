@@ -62,6 +62,12 @@ HIGHLIGHTED_CONTRIBUTIONS = (
         "Skip Gradle cooldown metadata fetch when cooldown is not configured",
         "https://github.com/dependabot/dependabot-core/pull/15136",
     ),
+    (
+        "dependabot/dependabot-core",
+        15131,
+        "Fix misleading Terraform registry error when TLS certificate verification fails",
+        "https://github.com/dependabot/dependabot-core/pull/15131",
+    ),
 )
 
 
