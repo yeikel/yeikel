@@ -74,6 +74,12 @@ HIGHLIGHTED_CONTRIBUTIONS = (
         "Maven: skip unresolvable properties",
         "https://github.com/dependabot/dependabot-core/pull/14344",
     ),
+    (
+        "dependabot/dependabot-core",
+        14132,
+        "Fetch release notes for the Gradle Wrapper",
+        "https://github.com/dependabot/dependabot-core/pull/14132",
+    ),
 )
 
 
