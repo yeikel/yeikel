@@ -10,9 +10,12 @@ I'm a regular contributor to [Dependabot Core](https://github.com/dependabot/dep
 
 Selected contributions:
 
-- [Add support for calendar-based Maven and Gradle versions](https://github.com/dependabot/dependabot-core/pull/14114)
-- [Prevent metadata errors from losing pull-request messages](https://github.com/dependabot/dependabot-core/pull/14905)
-- [Contribute an Apache Shiro security advisory](https://github.com/github/advisory-database/pull/7910)
+<!-- selected-contributions:start -->
+<!-- This section is updated automatically by .github/workflows/update-selected-contributions.yml. -->
+- [dependabot/dependabot-core#14905 — Rescue errors in metadata_cascades_for_dep to prevent PR message loss](https://github.com/dependabot/dependabot-core/pull/14905)
+- [dependabot/dependabot-core#14114 — Add support for calendar-based versions for Maven and Gradle](https://github.com/dependabot/dependabot-core/pull/14114)
+- [github/advisory-database#7910 — \[GHSA-7pq2-fhx9-x464\] Apache Shiro’s Jakarta EE module used the HTTP Referer...](https://github.com/github/advisory-database/pull/7910)
+<!-- selected-contributions:end -->
 
 ## Connect
 
