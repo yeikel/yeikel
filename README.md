@@ -6,7 +6,7 @@ My work spans software architecture, developer experience, dependency automation
 
 ## Open source
 
-I'm a regular contributor to [Dependabot Core](https://github.com/dependabot/dependabot-core), with work across multiple package ecosystems, reliability improvements, and dependency-management behavior.
+I'm a regular contributor to [Dependabot Core](https://github.com/dependabot/dependabot-core). My [contributions](https://github.com/dependabot/dependabot-core/commits?author=yeikel) span multiple package ecosystems, reliability improvements, and dependency-management behavior.
 
 Selected contributions:
 
