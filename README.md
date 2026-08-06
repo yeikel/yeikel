@@ -4,6 +4,8 @@ I'm a software engineer who cares about building high-quality, reliable software
 
 My work spans software architecture, developer experience, dependency automation, CI/CD, reliability, security, and open source. I enjoy understanding difficult systems, fixing problems at their source, and leaving codebases better than I found them.
 
+In my day-to-day work, I primarily build with Java and the JVM, but I'm open to working across languages and stacks. My open-source contributions reflect that adaptability: I contribute regularly to [Dependabot Core](https://github.com/dependabot/dependabot-core), a predominantly Ruby codebase, even though Ruby is not part of my usual day-to-day stack.
+
 ## Skills
 
 <!-- contribution-skills:start -->
