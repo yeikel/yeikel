@@ -1,7 +1,9 @@
 name: Update selected contributions
 
 on:
-  pull_request:
+  push:
+    branches-ignore:
+      - main
     paths:
       - README.md
       - .github/scripts/update_selected_contributions.py
