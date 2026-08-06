@@ -7,6 +7,7 @@ on:
     paths:
       - README.md
       - .github/data/highlighted-contributions.json
+      - .github/scripts/requirements.txt
       - .github/scripts/update_selected_contributions.py
       - .github/workflows/update-selected-contributions.yml
       - .github/scripts/tests/test_update_selected_contributions.py
@@ -29,6 +30,9 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Install updater dependencies
+        run: python3 -m pip install --requirement .github/scripts/requirements.txt
+
       - name: Run updater tests
         run: python3 -m unittest discover -s .github/scripts/tests -v
 
@@ -43,6 +47,9 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.repository.default_branch }}
+
+      - name: Install updater dependencies
+        run: python3 -m pip install --requirement .github/scripts/requirements.txt
 
       - name: Update profile content
         env:

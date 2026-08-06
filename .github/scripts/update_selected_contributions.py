@@ -7,15 +7,15 @@ import argparse
 import json
 import os
 import re
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable
-from urllib.error import HTTPError
-from urllib.parse import urlencode, urlparse
-from urllib.request import Request, urlopen
+from typing import TypedDict
+from urllib.parse import urlparse
+
+from github import Auth, Github
+from github.GithubException import GithubException
 
 
-API_URL = "https://api.github.com/search/issues"
-API_VERSION = "2022-11-28"
 START_MARKER = "<!-- selected-contributions:start -->"
 END_MARKER = "<!-- selected-contributions:end -->"
 GENERATED_NOTICE = (
@@ -52,6 +52,16 @@ DEFAULT_HIGHLIGHTS_PATH = (
 )
 HighlightedContribution = tuple[str, int, str, str]
 SkillRepository = tuple[str, str]
+
+
+class Contribution(TypedDict):
+    """Normalized GitHub contribution data used by the README formatters."""
+
+    repository: str
+    number: int
+    title: str
+    html_url: str
+    merged_at: datetime
 
 
 def load_highlighted_contributions(
@@ -115,106 +125,69 @@ def load_highlighted_contributions(
     return tuple(contributions)
 
 
-def _request_json(
-    *,
-    url: str,
-    username: str,
-    token: str | None,
-    open_url: Callable[..., Any],
-) -> dict[str, Any]:
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "User-Agent": f"{username}-profile-readme-updater",
-        "X-GitHub-Api-Version": API_VERSION,
-    }
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-
-    request = Request(url, headers=headers)
-    with open_url(request, timeout=30) as response:
-        payload = json.loads(response.read().decode("utf-8"))
-
-    if not isinstance(payload, dict):
-        raise RuntimeError("GitHub returned an unexpected API response")
-    return payload
-
-
-def _request_page(
-    *,
-    username: str,
-    page: int,
-    token: str | None,
-    open_url: Callable[..., Any],
-) -> dict[str, Any]:
-    query = f"is:pr author:{username} is:merged is:public -user:{username}"
-    url = f"{API_URL}?{urlencode({'q': query, 'sort': 'updated', 'order': 'desc', 'per_page': PER_PAGE, 'page': page})}"
-    payload = _request_json(
-        url=url,
-        username=username,
-        token=token,
-        open_url=open_url,
+def create_github_client(token: str | None) -> Github:
+    """Create a PyGithub client for authenticated or public API access."""
+    auth = Auth.Token(token) if token else None
+    return Github(
+        auth=auth,
+        per_page=PER_PAGE,
+        user_agent="yeikel-profile-readme-updater",
     )
-
-    if not isinstance(payload.get("items"), list):
-        raise RuntimeError("GitHub returned an unexpected search response")
-    if payload.get("incomplete_results") is True:
-        raise RuntimeError("GitHub returned incomplete search results")
-    return payload
 
 
 def fetch_all_contributions(
     username: str,
-    token: str | None = None,
-    open_url: Callable[..., Any] | None = None,
-) -> list[dict[str, Any]]:
+    github_client: Github,
+) -> list[Contribution]:
     """Return merged public PRs outside the user's repos, newest first."""
-    opener = open_url or urlopen
-    items: list[dict[str, Any]] = []
-    total_count = MAX_SEARCH_RESULTS
-
-    for page in range(1, (MAX_SEARCH_RESULTS // PER_PAGE) + 1):
-        payload = _request_page(
-            username=username,
-            page=page,
-            token=token,
-            open_url=opener,
-        )
-        page_items = payload["items"]
-        items.extend(page_items)
-        total_count = min(int(payload.get("total_count", len(items))), MAX_SEARCH_RESULTS)
-        if len(items) >= total_count or not page_items:
+    query = f"is:pr author:{username} is:merged is:public -user:{username}"
+    search_results = github_client.search_issues(
+        query=query,
+        sort="updated",
+        order="desc",
+    )
+    contributions: list[Contribution] = []
+    seen: set[tuple[str, int]] = set()
+    for index, issue in enumerate(search_results):
+        if index >= MAX_SEARCH_RESULTS:
             break
 
-    merged_items = [
-        item
-        for item in items
-        if isinstance(item.get("pull_request"), dict)
-        and item["pull_request"].get("merged_at")
-    ]
-    merged_items.sort(
-        key=lambda item: item["pull_request"]["merged_at"],
-        reverse=True,
-    )
+        pull_request = issue.pull_request
+        if pull_request is None or pull_request.merged_at is None:
+            continue
+        repository = _repository_name(issue.repository_url)
+        key = (repository, issue.number)
+        if key in seen:
+            continue
+        seen.add(key)
+        contributions.append(
+            {
+                "repository": repository,
+                "number": issue.number,
+                "title": issue.title,
+                "html_url": pull_request.html_url or issue.html_url,
+                "merged_at": pull_request.merged_at,
+            }
+        )
 
-    if not merged_items:
+    contributions.sort(key=lambda item: item["merged_at"], reverse=True)
+    if not contributions:
         raise RuntimeError("GitHub returned no merged public contributions")
-    return merged_items
+    return contributions
 
 
 def fetch_contributions(
     username: str,
     limit: int,
-    token: str | None = None,
-    open_url: Callable[..., Any] | None = None,
-) -> list[dict[str, Any]]:
+    github_client: Github,
+) -> list[Contribution]:
     """Return the most recently merged public PRs outside the user's repos."""
     if not 1 <= limit <= 10:
         raise ValueError("limit must be between 1 and 10")
 
     return fetch_all_contributions(
         username=username,
-        token=token,
-        open_url=open_url,
+        github_client=github_client,
     )[:limit]
 
 
@@ -228,35 +201,20 @@ def _repository_name(repository_url: str) -> str:
     return name
 
 
-def _pull_request_url(item: dict[str, Any]) -> str:
-    url = item["pull_request"].get("html_url") or item.get("html_url")
+def _pull_request_url(item: Contribution) -> str:
+    url = item["html_url"]
     parsed = urlparse(str(url))
     if parsed.scheme != "https" or parsed.netloc != "github.com" or "/pull/" not in parsed.path:
         raise RuntimeError(f"Unexpected pull request URL: {url}")
     return str(url)
 
 
-def _pull_request_api_url(item: dict[str, Any]) -> str:
-    url = item["pull_request"].get("url")
-    parsed = urlparse(str(url))
-    if (
-        parsed.scheme != "https"
-        or parsed.netloc != "api.github.com"
-        or "/repos/" not in parsed.path
-        or "/pulls/" not in parsed.path
-    ):
-        raise RuntimeError(f"Unexpected pull request API URL: {url}")
-    return str(url)
-
-
 def _is_low_signal_skill_contribution(
-    item: dict[str, Any],
+    item: Contribution,
     *,
-    username: str,
-    token: str | None,
-    open_url: Callable[..., Any],
+    github_client: Github,
 ) -> bool:
-    repository = _repository_name(str(item["repository_url"]))
+    repository = item["repository"]
     number = int(item["number"])
     if (repository, number) in EXCLUDED_SKILL_CONTRIBUTIONS:
         return True
@@ -267,13 +225,12 @@ def _is_low_signal_skill_contribution(
     if not DEPENDENCY_UPDATE_PATTERN.search(title):
         return False
 
-    payload = _request_json(
-        url=_pull_request_api_url(item),
-        username=username,
-        token=token,
-        open_url=open_url,
-    )
-    changed_files = payload.get("changed_files")
+    try:
+        changed_files = github_client.get_repo(repository).get_pull(number).changed_files
+    except GithubException as error:
+        if error.status in {404, 410}:
+            return True
+        raise
     if (
         not isinstance(changed_files, int)
         or isinstance(changed_files, bool)
@@ -289,10 +246,10 @@ def _escape_link_text(value: str) -> str:
 
 
 def select_recent_contributions(
-    items: list[dict[str, Any]],
+    items: list[Contribution],
     limit: int,
     highlighted_contributions: tuple[HighlightedContribution, ...] = (),
-) -> list[dict[str, Any]]:
+) -> list[Contribution]:
     """Select recent non-highlighted PRs so pinned entries do not consume slots."""
     if not 1 <= limit <= 10:
         raise ValueError("limit must be between 1 and 10")
@@ -303,7 +260,7 @@ def select_recent_contributions(
     }
     selected = []
     for item in items:
-        key = (_repository_name(str(item["repository_url"])), int(item["number"]))
+        key = (item["repository"], int(item["number"]))
         if key in highlighted_keys:
             continue
         selected.append(item)
@@ -313,10 +270,8 @@ def select_recent_contributions(
 
 
 def fetch_contribution_skills(
-    items: list[dict[str, Any]],
-    username: str,
-    token: str | None = None,
-    open_url: Callable[..., Any] | None = None,
+    items: list[Contribution],
+    github_client: Github,
     max_repositories: int = MAX_SKILL_REPOSITORIES,
     highlighted_contributions: tuple[HighlightedContribution, ...] = (),
 ) -> dict[str, list[SkillRepository]]:
@@ -328,40 +283,30 @@ def fetch_contribution_skills(
     for repository, _number, _title, url in highlighted_contributions:
         meaningful_contribution_urls.setdefault(repository, url)
 
-    opener = open_url or urlopen
-    repository_urls: dict[str, str] = {}
+    repositories: list[str] = []
     for item in items:
-        repository_url = str(item["repository_url"])
-        repository = _repository_name(repository_url)
-        if repository in repository_urls:
+        repository = item["repository"]
+        if repository in repositories:
             continue
         if _is_low_signal_skill_contribution(
             item,
-            username=username,
-            token=token,
-            open_url=opener,
+            github_client=github_client,
         ):
             continue
-        repository_urls.setdefault(repository, repository_url)
+        repositories.append(repository)
         meaningful_contribution_urls.setdefault(repository, _pull_request_url(item))
-        if len(repository_urls) >= max_repositories:
+        if len(repositories) >= max_repositories:
             break
 
     repositories_by_language: dict[str, list[SkillRepository]] = {}
-    for repository, repository_url in repository_urls.items():
+    for repository in repositories:
         try:
-            payload = _request_json(
-                url=repository_url,
-                username=username,
-                token=token,
-                open_url=opener,
-            )
-        except HTTPError as error:
-            if error.code in {404, 410}:
+            language = github_client.get_repo(repository).language
+        except GithubException as error:
+            if error.status in {404, 410}:
                 continue
             raise
 
-        language = payload.get("language")
         if language is None:
             continue
         if not isinstance(language, str) or not language.strip():
@@ -463,7 +408,7 @@ def format_skills(
 
 
 def format_contributions(
-    items: list[dict[str, Any]],
+    items: list[Contribution],
     highlighted_contributions: tuple[HighlightedContribution, ...] = (),
 ) -> str:
     highlighted_by_repository: dict[str, list[str]] = {}
@@ -480,7 +425,7 @@ def format_contributions(
         )
 
     for item in items:
-        repository = _repository_name(str(item["repository_url"]))
+        repository = item["repository"]
         number = int(item["number"])
         if (repository, number) in highlighted_keys:
             continue
@@ -588,21 +533,21 @@ def main() -> int:
 
     token = os.environ.get("GITHUB_TOKEN")
     highlighted_contributions = load_highlighted_contributions(args.highlights)
-    all_contributions = fetch_all_contributions(
-        username=args.username,
-        token=token,
-    )
-    contributions = select_recent_contributions(
-        all_contributions,
-        args.limit,
-        highlighted_contributions,
-    )
-    skills = fetch_contribution_skills(
-        all_contributions,
-        username=args.username,
-        token=token,
-        highlighted_contributions=highlighted_contributions,
-    )
+    with create_github_client(token) as github_client:
+        all_contributions = fetch_all_contributions(
+            username=args.username,
+            github_client=github_client,
+        )
+        contributions = select_recent_contributions(
+            all_contributions,
+            args.limit,
+            highlighted_contributions,
+        )
+        skills = fetch_contribution_skills(
+            all_contributions,
+            github_client=github_client,
+            highlighted_contributions=highlighted_contributions,
+        )
     current = args.readme.read_text(encoding="utf-8")
     updated = update_readme_text(
         current,

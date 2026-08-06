@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import unittest
+from datetime import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from urllib.parse import parse_qs, urlparse
-import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 
 
 SCRIPT_PATH = (
@@ -28,35 +30,96 @@ def contribution(
     merged_at: str,
 ) -> dict[str, object]:
     url = f"https://github.com/{repository}/pull/{number}"
-    api_url = f"https://api.github.com/repos/{repository}/pulls/{number}"
     return {
+        "repository": repository,
         "number": number,
         "title": title,
-        "repository_url": f"https://api.github.com/repos/{repository}",
         "html_url": url,
-        "pull_request": {
-            "html_url": url,
-            "merged_at": merged_at,
-            "url": api_url,
-        },
+        "merged_at": datetime.fromisoformat(merged_at.replace("Z", "+00:00")),
     }
 
 
-class FakeResponse:
-    def __init__(self, payload: dict[str, object]) -> None:
-        self.payload = payload
+def search_result(
+    *,
+    repository: str,
+    number: int,
+    title: str,
+    merged_at: str | None,
+) -> SimpleNamespace:
+    url = f"https://github.com/{repository}/pull/{number}"
+    pull_request = None
+    if merged_at is not None:
+        pull_request = SimpleNamespace(
+            html_url=url,
+            merged_at=datetime.fromisoformat(merged_at.replace("Z", "+00:00")),
+        )
+    return SimpleNamespace(
+        repository_url=f"https://api.github.com/repos/{repository}",
+        number=number,
+        title=title,
+        html_url=url,
+        pull_request=pull_request,
+    )
 
-    def __enter__(self) -> "FakeResponse":
-        return self
 
-    def __exit__(self, *_args: object) -> None:
-        return None
+class FakeRepository:
+    def __init__(self, github_client: "FakeGithub", name: str) -> None:
+        self.github_client = github_client
+        self.name = name
 
-    def read(self) -> bytes:
-        return json.dumps(self.payload).encode("utf-8")
+    @property
+    def language(self) -> str | None:
+        self.github_client.language_requests.append(self.name)
+        return self.github_client.languages[self.name]
+
+    def get_pull(self, number: int) -> SimpleNamespace:
+        self.github_client.pull_requests.append((self.name, number))
+        return SimpleNamespace(
+            changed_files=self.github_client.changed_files[(self.name, number)]
+        )
+
+
+class FakeGithub:
+    def __init__(
+        self,
+        *,
+        search_results: list[SimpleNamespace] | None = None,
+        languages: dict[str, str | None] | None = None,
+        changed_files: dict[tuple[str, int], int] | None = None,
+    ) -> None:
+        self.search_results = search_results or []
+        self.languages = languages or {}
+        self.changed_files = changed_files or {}
+        self.search_requests: list[dict[str, str]] = []
+        self.language_requests: list[str] = []
+        self.pull_requests: list[tuple[str, int]] = []
+
+    def search_issues(self, **request: str) -> list[SimpleNamespace]:
+        self.search_requests.append(request)
+        return self.search_results
+
+    def get_repo(self, repository: str) -> FakeRepository:
+        return FakeRepository(self, repository)
 
 
 class UpdateSelectedContributionsTest(unittest.TestCase):
+    def test_creates_authenticated_pygithub_client(self) -> None:
+        auth = object()
+        github_client = object()
+        with (
+            patch.object(UPDATER.Auth, "Token", return_value=auth) as token_auth,
+            patch.object(UPDATER, "Github", return_value=github_client) as client_type,
+        ):
+            result = UPDATER.create_github_client("test-token")
+
+        self.assertIs(github_client, result)
+        token_auth.assert_called_once_with("test-token")
+        client_type.assert_called_once_with(
+            auth=auth,
+            per_page=UPDATER.PER_PAGE,
+            user_agent="yeikel-profile-readme-updater",
+        )
+
     def test_loads_highlighted_contributions_from_json(self) -> None:
         self.assertIn(
             (
@@ -88,74 +151,81 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
                 UPDATER.load_highlighted_contributions(path)
 
     def test_fetches_and_sorts_contributions_by_merge_time(self) -> None:
-        requests = []
         items = [
-            contribution(
+            search_result(
                 repository="example/older",
                 number=1,
                 title="Older",
                 merged_at="2026-01-01T00:00:00Z",
             ),
-            contribution(
+            search_result(
                 repository="example/newest",
                 number=3,
                 title="Newest",
                 merged_at="2026-03-01T00:00:00Z",
             ),
-            contribution(
+            search_result(
                 repository="example/middle",
                 number=2,
                 title="Middle",
                 merged_at="2026-02-01T00:00:00Z",
             ),
         ]
-
-        def fake_open(request, timeout):
-            requests.append((request, timeout))
-            return FakeResponse({"total_count": len(items), "items": items})
+        github_client = FakeGithub(search_results=items)
 
         result = UPDATER.fetch_contributions(
             username="yeikel",
             limit=2,
-            token="test-token",
-            open_url=fake_open,
+            github_client=github_client,
         )
 
         self.assertEqual([3, 2], [item["number"] for item in result])
-        self.assertEqual(1, len(requests))
-        request, timeout = requests[0]
-        query = parse_qs(urlparse(request.full_url).query)
         self.assertEqual(
-            ["is:pr author:yeikel is:merged is:public -user:yeikel"],
-            query["q"],
-        )
-        self.assertEqual("Bearer test-token", request.get_header("Authorization"))
-        self.assertEqual(30, timeout)
-
-    def test_rejects_incomplete_search_results(self) -> None:
-        def fake_open(_request, timeout):
-            self.assertEqual(30, timeout)
-            return FakeResponse(
+            [
                 {
-                    "total_count": 1,
-                    "incomplete_results": True,
-                    "items": [
-                        contribution(
-                            repository="example/incomplete",
-                            number=1,
-                            title="Incomplete",
-                            merged_at="2026-01-01T00:00:00Z",
-                        )
-                    ],
+                    "query": "is:pr author:yeikel is:merged is:public -user:yeikel",
+                    "sort": "updated",
+                    "order": "desc",
                 }
-            )
+            ],
+            github_client.search_requests,
+        )
 
-        with self.assertRaisesRegex(RuntimeError, "incomplete search results"):
+    def test_rejects_search_results_without_merged_contributions(self) -> None:
+        github_client = FakeGithub(
+            search_results=[
+                search_result(
+                    repository="example/unmerged",
+                    number=1,
+                    title="Unmerged",
+                    merged_at=None,
+                )
+            ]
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "no merged public contributions"):
             UPDATER.fetch_contributions(
                 username="yeikel",
                 limit=1,
-                open_url=fake_open,
+                github_client=github_client,
             )
+
+    def test_deduplicates_pygithub_search_results(self) -> None:
+        duplicate = search_result(
+            repository="example/project",
+            number=42,
+            title="Contribution",
+            merged_at="2026-01-01T00:00:00Z",
+        )
+        github_client = FakeGithub(search_results=[duplicate, duplicate])
+
+        result = UPDATER.fetch_all_contributions(
+            username="yeikel",
+            github_client=github_client,
+        )
+
+        self.assertEqual(1, len(result))
+        self.assertEqual(42, result[0]["number"])
 
     def test_groups_contributions_by_repository_and_escapes_title(self) -> None:
         formatted = UPDATER.format_contributions(
@@ -296,22 +366,17 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
                 merged_at="2025-12-01T00:00:00Z",
             ),
         ]
-        languages = {
-            "https://api.github.com/repos/example/java-one": "Java",
-            "https://api.github.com/repos/example/ruby": "Ruby",
-            "https://api.github.com/repos/example/java-two": "Java",
-        }
-        requests = []
-
-        def fake_open(request, timeout):
-            requests.append((request, timeout))
-            return FakeResponse({"language": languages[request.full_url]})
+        github_client = FakeGithub(
+            languages={
+                "example/java-one": "Java",
+                "example/ruby": "Ruby",
+                "example/java-two": "Java",
+            }
+        )
 
         skills = UPDATER.fetch_contribution_skills(
             items,
-            username="yeikel",
-            token="test-token",
-            open_url=fake_open,
+            github_client=github_client,
             highlighted_contributions=(
                 (
                     "example/ruby",
@@ -340,13 +405,9 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             },
             skills,
         )
-        self.assertEqual(3, len(requests))
-        self.assertTrue(
-            all(
-                request.get_header("Authorization") == "Bearer test-token"
-                and timeout == 30
-                for request, timeout in requests
-            )
+        self.assertEqual(
+            ["example/java-one", "example/ruby", "example/java-two"],
+            github_client.language_requests,
         )
 
     def test_excludes_low_signal_skill_contributions_and_languages(self) -> None:
@@ -394,31 +455,22 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
                 merged_at="2025-12-01T00:00:00Z",
             ),
         ]
-        responses = {
-            "https://api.github.com/repos/example/dependency-only/pulls/10": {
-                "changed_files": 2
+        github_client = FakeGithub(
+            languages={
+                "example/substantial-upgrade": "Java",
+                "example/kotlin": "Kotlin",
+                "example/mdx": "MDX",
+                "example/go": "Go",
             },
-            "https://api.github.com/repos/example/substantial-upgrade/pulls/11": {
-                "changed_files": 3
+            changed_files={
+                ("example/dependency-only", 10): 2,
+                ("example/substantial-upgrade", 11): 3,
             },
-            "https://api.github.com/repos/example/substantial-upgrade": {
-                "language": "Java"
-            },
-            "https://api.github.com/repos/example/kotlin": {"language": "Kotlin"},
-            "https://api.github.com/repos/example/mdx": {"language": "MDX"},
-            "https://api.github.com/repos/example/go": {"language": "Go"},
-        }
-        requests = []
-
-        def fake_open(request, timeout):
-            requests.append((request, timeout))
-            return FakeResponse(responses[request.full_url])
+        )
 
         skills = UPDATER.fetch_contribution_skills(
             items,
-            username="yeikel",
-            token="test-token",
-            open_url=fake_open,
+            github_client=github_client,
         )
 
         self.assertEqual(
@@ -435,7 +487,22 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             },
             skills,
         )
-        self.assertEqual(6, len(requests))
+        self.assertEqual(
+            [
+                ("example/dependency-only", 10),
+                ("example/substantial-upgrade", 11),
+            ],
+            github_client.pull_requests,
+        )
+        self.assertEqual(
+            [
+                "example/substantial-upgrade",
+                "example/kotlin",
+                "example/mdx",
+                "example/go",
+            ],
+            github_client.language_requests,
+        )
 
     def test_formats_ranked_skills_with_repository_evidence(self) -> None:
         formatted = UPDATER.format_skills(
