@@ -329,6 +329,8 @@ def format_skills(
         "history. Each repository links to a meaningful contribution: a curated highlight "
         "when available, otherwise my most recently merged contribution:",
         "",
+        "| Language | Contribution evidence |",
+        "| --- | --- |",
     ]
     for language, repositories in ranked_languages:
         displayed_repositories = repositories[:max_repositories_per_skill]
@@ -343,7 +345,7 @@ def format_skills(
             if additional_count
             else ""
         )
-        lines.append(f"- **{language}:** {repository_links}{additional}")
+        lines.append(f"| **{language}** | {repository_links}{additional} |")
     return "\n".join(lines)
 
 

@@ -366,12 +366,14 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             "Primary languages across public repositories in my recent merged contribution "
             "history. Each repository links to a meaningful contribution: a curated highlight "
             "when available, otherwise my most recently merged contribution:\n\n"
-            "- **Java:** [example/one](https://github.com/example/one/pull/1), "
+            "| Language | Contribution evidence |\n"
+            "| --- | --- |\n"
+            "| **Java** | [example/one](https://github.com/example/one/pull/1), "
             "[example/two](https://github.com/example/two/pull/2), "
             "[example/three](https://github.com/example/three/pull/3) "
-            "(+1 more repository)\n"
-            "- **Ruby:** [dependabot/dependabot-core]"
-            "(https://github.com/dependabot/dependabot-core/pull/14812)",
+            "(+1 more repository) |\n"
+            "| **Ruby** | [dependabot/dependabot-core]"
+            "(https://github.com/dependabot/dependabot-core/pull/14812) |",
             formatted,
         )
 
@@ -388,8 +390,8 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             max_skills=1,
         )
 
-        self.assertIn("**Rust:**", formatted)
-        self.assertNotIn("**CSS:**", formatted)
+        self.assertIn("**Rust**", formatted)
+        self.assertNotIn("**CSS**", formatted)
 
     def test_replaces_only_the_generated_section(self) -> None:
         original = (
