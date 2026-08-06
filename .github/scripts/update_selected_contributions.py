@@ -44,6 +44,12 @@ HIGHLIGHTED_CONTRIBUTIONS = (
         "Gate YARN_NPM_MINIMAL_AGE_GATE on Yarn 4.10+",
         "https://github.com/dependabot/dependabot-core/pull/15226",
     ),
+    (
+        "dependabot/dependabot-core",
+        15191,
+        "Disable `npmMinimalAgeGate` for Yarn Berry security updates",
+        "https://github.com/dependabot/dependabot-core/pull/15191",
+    ),
 )
 
 

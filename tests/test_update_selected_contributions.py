@@ -169,6 +169,12 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             ),
             contribution(
                 repository="dependabot/dependabot-core",
+                number=15191,
+                title="Disable `npmMinimalAgeGate` for Yarn Berry security updates",
+                merged_at="2026-03-15T00:00:00Z",
+            ),
+            contribution(
+                repository="dependabot/dependabot-core",
                 number=14812,
                 title="Add support for the Maven Wrapper",
                 merged_at="2026-03-01T00:00:00Z",
@@ -187,11 +193,15 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             "(https://github.com/dependabot/dependabot-core/pull/14812)\n"
             "- **Featured:** "
             "[#15226 — Gate YARN_NPM_MINIMAL_AGE_GATE on Yarn 4.10+]"
-            "(https://github.com/dependabot/dependabot-core/pull/15226)",
+            "(https://github.com/dependabot/dependabot-core/pull/15226)\n"
+            "- **Featured:** "
+            "[#15191 — Disable `npmMinimalAgeGate` for Yarn Berry security updates]"
+            "(https://github.com/dependabot/dependabot-core/pull/15191)",
             formatted,
         )
         self.assertEqual(1, formatted.count("/pull/14812"))
         self.assertEqual(1, formatted.count("/pull/15226"))
+        self.assertEqual(1, formatted.count("/pull/15191"))
 
     def test_highlighted_contribution_does_not_consume_recent_slot(self) -> None:
         items = [
