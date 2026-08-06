@@ -26,7 +26,7 @@ Primary languages across public repositories in my recent merged contribution hi
 
 ## Agentic AI
 
-I have hands-on experience working with agentic AI tools including Devin, OpenAI Codex, GitHub Copilot, and Claude, along with other AI-assisted development systems. I use them for codebase exploration, implementation, debugging, refactoring, testing, code review, CI investigation, and multi-step engineering workflows, while keeping architecture, correctness, security, and maintainability grounded in human judgment.
+I have hands-on experience working with agentic AI tools including [Devin](https://devin.ai/), [OpenAI Codex](https://openai.com/codex/), [GitHub Copilot](https://github.com/features/copilot), and [Claude](https://claude.ai/), along with other AI-assisted development systems. I use them for codebase exploration, implementation, debugging, refactoring, testing, code review, CI investigation, and multi-step engineering workflows, while keeping architecture, correctness, security, and maintainability grounded in human judgment.
 
 ## Open source contributions
 
