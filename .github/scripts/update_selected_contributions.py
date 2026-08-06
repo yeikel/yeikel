@@ -56,6 +56,12 @@ HIGHLIGHTED_CONTRIBUTIONS = (
         "Pass `--config.minimumReleaseAge=0` for `pnpm` security updates to bypass pnpm-workspace.yaml",
         "https://github.com/dependabot/dependabot-core/pull/15170",
     ),
+    (
+        "dependabot/dependabot-core",
+        15136,
+        "Skip Gradle cooldown metadata fetch when cooldown is not configured",
+        "https://github.com/dependabot/dependabot-core/pull/15136",
+    ),
 )
 
 

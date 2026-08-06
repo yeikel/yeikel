@@ -38,6 +38,7 @@ Selected contributions:
 - **Featured:** [#15226 — Gate YARN_NPM_MINIMAL_AGE_GATE on Yarn 4.10+](https://github.com/dependabot/dependabot-core/pull/15226)
 - **Featured:** [#15191 — Disable `npmMinimalAgeGate` for Yarn Berry security updates](https://github.com/dependabot/dependabot-core/pull/15191)
 - **Featured:** [#15170 — Pass `--config.minimumReleaseAge=0` for `pnpm` security updates to bypass pnpm-workspace.yaml](https://github.com/dependabot/dependabot-core/pull/15170)
+- **Featured:** [#15136 — Skip Gradle cooldown metadata fetch when cooldown is not configured](https://github.com/dependabot/dependabot-core/pull/15136)
 - [#14905 — Rescue errors in metadata_cascades_for_dep to prevent PR message loss](https://github.com/dependabot/dependabot-core/pull/14905)
 - [#14114 — Add support for calendar-based versions for Maven and Gradle](https://github.com/dependabot/dependabot-core/pull/14114)
 
