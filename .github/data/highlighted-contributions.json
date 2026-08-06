@@ -1,0 +1,42 @@
+[
+  {
+    "repository": "dependabot/dependabot-core",
+    "number": 14812,
+    "title": "Add support for the Maven Wrapper"
+  },
+  {
+    "repository": "dependabot/dependabot-core",
+    "number": 15226,
+    "title": "Gate YARN_NPM_MINIMAL_AGE_GATE on Yarn 4.10+"
+  },
+  {
+    "repository": "dependabot/dependabot-core",
+    "number": 15191,
+    "title": "Disable `npmMinimalAgeGate` for Yarn Berry security updates"
+  },
+  {
+    "repository": "dependabot/dependabot-core",
+    "number": 15170,
+    "title": "Pass `--config.minimumReleaseAge=0` for `pnpm` security updates to bypass pnpm-workspace.yaml"
+  },
+  {
+    "repository": "dependabot/dependabot-core",
+    "number": 15136,
+    "title": "Skip Gradle cooldown metadata fetch when cooldown is not configured"
+  },
+  {
+    "repository": "dependabot/dependabot-core",
+    "number": 15131,
+    "title": "Fix misleading Terraform registry error when TLS certificate verification fails"
+  },
+  {
+    "repository": "dependabot/dependabot-core",
+    "number": 14344,
+    "title": "Maven: skip unresolvable properties"
+  },
+  {
+    "repository": "dependabot/dependabot-core",
+    "number": 14132,
+    "title": "Fetch release notes for the Gradle Wrapper"
+  }
+]

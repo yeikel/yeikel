@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from urllib.parse import parse_qs, urlparse
 import unittest
 
@@ -17,6 +18,9 @@ SPEC = importlib.util.spec_from_file_location("update_selected_contributions", S
 assert SPEC and SPEC.loader
 UPDATER = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(UPDATER)
+HIGHLIGHTED_CONTRIBUTIONS = UPDATER.load_highlighted_contributions(
+    UPDATER.DEFAULT_HIGHLIGHTS_PATH
+)
 
 
 def contribution(
@@ -51,6 +55,36 @@ class FakeResponse:
 
 
 class UpdateSelectedContributionsTest(unittest.TestCase):
+    def test_loads_highlighted_contributions_from_json(self) -> None:
+        self.assertIn(
+            (
+                "dependabot/dependabot-core",
+                14812,
+                "Add support for the Maven Wrapper",
+                "https://github.com/dependabot/dependabot-core/pull/14812",
+            ),
+            HIGHLIGHTED_CONTRIBUTIONS,
+        )
+
+    def test_rejects_invalid_highlighted_contributions_json(self) -> None:
+        with TemporaryDirectory() as temporary_directory:
+            path = Path(temporary_directory) / "highlights.json"
+            path.write_text(
+                json.dumps(
+                    [
+                        {
+                            "repository": "dependabot/dependabot-core",
+                            "number": "14812",
+                            "title": "Add support for the Maven Wrapper",
+                        }
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(RuntimeError, "positive integer number"):
+                UPDATER.load_highlighted_contributions(path)
+
     def test_fetches_and_sorts_contributions_by_merge_time(self) -> None:
         requests = []
         items = [
@@ -168,13 +202,13 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
                 merged_at="2026-01-01T00:00:00Z",
             )
             for repository, number, title, _url in reversed(
-                UPDATER.HIGHLIGHTED_CONTRIBUTIONS
+                HIGHLIGHTED_CONTRIBUTIONS
             )
         ]
 
         formatted = UPDATER.format_contributions(
             highlighted_items,
-            UPDATER.HIGHLIGHTED_CONTRIBUTIONS,
+            HIGHLIGHTED_CONTRIBUTIONS,
         )
 
         self.assertEqual(
@@ -185,7 +219,7 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             ),
         )
         previous_position = -1
-        for _repository, number, title, url in UPDATER.HIGHLIGHTED_CONTRIBUTIONS:
+        for _repository, number, title, url in HIGHLIGHTED_CONTRIBUTIONS:
             expected = f"- **Featured:** [#{number} — {title}]({url})"
             self.assertIn(expected, formatted)
             self.assertEqual(1, formatted.count(url))
@@ -224,7 +258,7 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
         selected = UPDATER.select_recent_contributions(
             items,
             limit=3,
-            highlighted_contributions=UPDATER.HIGHLIGHTED_CONTRIBUTIONS,
+            highlighted_contributions=HIGHLIGHTED_CONTRIBUTIONS,
         )
 
         self.assertEqual([3, 2, 1], [item["number"] for item in selected])

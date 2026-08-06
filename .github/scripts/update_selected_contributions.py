@@ -31,56 +31,71 @@ MAX_SEARCH_RESULTS = 1_000
 MAX_SKILL_REPOSITORIES = 100
 MAX_SKILLS = 8
 MAX_REPOSITORIES_PER_SKILL = 3
-HIGHLIGHTED_CONTRIBUTIONS = (
-    (
-        "dependabot/dependabot-core",
-        14812,
-        "Add support for the Maven Wrapper",
-        "https://github.com/dependabot/dependabot-core/pull/14812",
-    ),
-    (
-        "dependabot/dependabot-core",
-        15226,
-        "Gate YARN_NPM_MINIMAL_AGE_GATE on Yarn 4.10+",
-        "https://github.com/dependabot/dependabot-core/pull/15226",
-    ),
-    (
-        "dependabot/dependabot-core",
-        15191,
-        "Disable `npmMinimalAgeGate` for Yarn Berry security updates",
-        "https://github.com/dependabot/dependabot-core/pull/15191",
-    ),
-    (
-        "dependabot/dependabot-core",
-        15170,
-        "Pass `--config.minimumReleaseAge=0` for `pnpm` security updates to bypass pnpm-workspace.yaml",
-        "https://github.com/dependabot/dependabot-core/pull/15170",
-    ),
-    (
-        "dependabot/dependabot-core",
-        15136,
-        "Skip Gradle cooldown metadata fetch when cooldown is not configured",
-        "https://github.com/dependabot/dependabot-core/pull/15136",
-    ),
-    (
-        "dependabot/dependabot-core",
-        15131,
-        "Fix misleading Terraform registry error when TLS certificate verification fails",
-        "https://github.com/dependabot/dependabot-core/pull/15131",
-    ),
-    (
-        "dependabot/dependabot-core",
-        14344,
-        "Maven: skip unresolvable properties",
-        "https://github.com/dependabot/dependabot-core/pull/14344",
-    ),
-    (
-        "dependabot/dependabot-core",
-        14132,
-        "Fetch release notes for the Gradle Wrapper",
-        "https://github.com/dependabot/dependabot-core/pull/14132",
-    ),
+DEFAULT_HIGHLIGHTS_PATH = (
+    Path(__file__).resolve().parents[1] / "data" / "highlighted-contributions.json"
 )
+HighlightedContribution = tuple[str, int, str, str]
+
+
+def load_highlighted_contributions(
+    path: Path,
+) -> tuple[HighlightedContribution, ...]:
+    """Load and validate curated profile contributions from JSON."""
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except OSError as error:
+        raise RuntimeError(
+            f"Unable to read highlighted contributions from {path}"
+        ) from error
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"Invalid highlighted contributions JSON in {path}") from error
+
+    if not isinstance(payload, list):
+        raise RuntimeError("Highlighted contributions JSON must contain a list")
+
+    contributions: list[HighlightedContribution] = []
+    seen: set[tuple[str, int]] = set()
+    required_fields = {"repository", "number", "title"}
+    for index, item in enumerate(payload):
+        entry_name = f"Highlighted contribution at index {index}"
+        if not isinstance(item, dict) or set(item) != required_fields:
+            raise RuntimeError(
+                f"{entry_name} must contain exactly repository, number, and title"
+            )
+
+        repository = item["repository"]
+        number = item["number"]
+        title = item["title"]
+        if (
+            not isinstance(repository, str)
+            or repository.count("/") != 1
+            or any(
+                not part or part.strip() != part
+                for part in repository.split("/")
+            )
+        ):
+            raise RuntimeError(f"{entry_name} has an invalid repository")
+        if not isinstance(number, int) or isinstance(number, bool) or number < 1:
+            raise RuntimeError(f"{entry_name} must have a positive integer number")
+        if not isinstance(title, str) or not title.strip():
+            raise RuntimeError(f"{entry_name} must have a non-empty title")
+
+        key = (repository, number)
+        if key in seen:
+            raise RuntimeError(
+                f"Duplicate highlighted contribution: {repository}#{number}"
+            )
+        seen.add(key)
+        contributions.append(
+            (
+                repository,
+                number,
+                title,
+                f"https://github.com/{repository}/pull/{number}",
+            )
+        )
+
+    return tuple(contributions)
 
 
 def _request_json(
@@ -212,7 +227,7 @@ def _escape_link_text(value: str) -> str:
 def select_recent_contributions(
     items: list[dict[str, Any]],
     limit: int,
-    highlighted_contributions: tuple[tuple[str, int, str, str], ...] = (),
+    highlighted_contributions: tuple[HighlightedContribution, ...] = (),
 ) -> list[dict[str, Any]]:
     """Select recent non-highlighted PRs so pinned entries do not consume slots."""
     if not 1 <= limit <= 10:
@@ -323,7 +338,7 @@ def format_skills(
 
 def format_contributions(
     items: list[dict[str, Any]],
-    highlighted_contributions: tuple[tuple[str, int, str, str], ...] = (),
+    highlighted_contributions: tuple[HighlightedContribution, ...] = (),
 ) -> str:
     contributions_by_repository: dict[str, list[str]] = {}
     highlighted_keys = set()
@@ -419,6 +434,12 @@ def parse_args() -> argparse.Namespace:
         help="GitHub username whose contributions should be selected",
     )
     parser.add_argument("--limit", type=int, default=3)
+    parser.add_argument(
+        "--highlights",
+        type=Path,
+        default=DEFAULT_HIGHLIGHTS_PATH,
+        help="JSON file containing curated highlighted contributions",
+    )
     return parser.parse_args()
 
 
@@ -428,6 +449,7 @@ def main() -> int:
         raise SystemExit("--username or PROFILE_USERNAME is required")
 
     token = os.environ.get("GITHUB_TOKEN")
+    highlighted_contributions = load_highlighted_contributions(args.highlights)
     all_contributions = fetch_all_contributions(
         username=args.username,
         token=token,
@@ -435,7 +457,7 @@ def main() -> int:
     contributions = select_recent_contributions(
         all_contributions,
         args.limit,
-        HIGHLIGHTED_CONTRIBUTIONS,
+        highlighted_contributions,
     )
     skills = fetch_contribution_skills(
         all_contributions,
@@ -445,7 +467,7 @@ def main() -> int:
     current = args.readme.read_text(encoding="utf-8")
     updated = update_readme_text(
         current,
-        format_contributions(contributions, HIGHLIGHTED_CONTRIBUTIONS),
+        format_contributions(contributions, highlighted_contributions),
         format_skills(skills),
     )
 
