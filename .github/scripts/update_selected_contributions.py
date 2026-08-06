@@ -32,6 +32,7 @@ MAX_SEARCH_RESULTS = 1_000
 MAX_SKILL_REPOSITORIES = 100
 MAX_SKILLS = 8
 MAX_REPOSITORIES_PER_SKILL = 3
+MAX_HIGHLIGHTED_SKILL_EXAMPLES = 3
 MAX_SMALL_DEPENDENCY_UPDATE_FILES = 2
 EXCLUDED_SKILL_LANGUAGES = frozenset({"Kotlin", "MDX"})
 EXCLUDED_SKILL_CONTRIBUTIONS = frozenset(
@@ -385,6 +386,7 @@ def format_skills(
     repositories_by_language: dict[str, list[SkillRepository]],
     max_skills: int = MAX_SKILLS,
     max_repositories_per_skill: int = MAX_REPOSITORIES_PER_SKILL,
+    highlighted_contributions: tuple[HighlightedContribution, ...] = (),
 ) -> str:
     """Render repository-backed language skills as Markdown."""
     if max_skills < 1 or max_repositories_per_skill < 1:
@@ -397,6 +399,10 @@ def format_skills(
     if not ranked_languages:
         raise RuntimeError("No contribution skills are available to format")
 
+    highlighted_by_repository: dict[str, list[HighlightedContribution]] = {}
+    for contribution in highlighted_contributions:
+        highlighted_by_repository.setdefault(contribution[0], []).append(contribution)
+
     lines = [
         "Primary languages across public repositories in my recent merged contribution "
         "history. Each repository links to a meaningful contribution: a curated highlight "
@@ -407,12 +413,45 @@ def format_skills(
         "| --- | --- |",
     ]
     for language, repositories in ranked_languages:
-        displayed_repositories = repositories[:max_repositories_per_skill]
-        repository_links = ", ".join(
-            f"[{repository}]({contribution_url})"
-            for repository, contribution_url in displayed_repositories
+        highlighted_repository = next(
+            (
+                repository
+                for repository, _url in repositories
+                if repository in highlighted_by_repository
+            ),
+            None,
         )
-        additional_count = len(repositories) - len(displayed_repositories)
+        if highlighted_repository:
+            examples = highlighted_by_repository[highlighted_repository][
+                :MAX_HIGHLIGHTED_SKILL_EXAMPLES
+            ]
+            example_links = ", ".join(
+                f"[{repository}#{number}]({url})"
+                for repository, number, _title, url in examples
+            )
+            other_repositories = [
+                repository
+                for repository in repositories
+                if repository[0] != highlighted_repository
+            ]
+            displayed_repositories = other_repositories[
+                : max_repositories_per_skill - 1
+            ]
+            repository_links = f"Highlighted examples: {example_links}"
+            if displayed_repositories:
+                other_links = ", ".join(
+                    f"[{repository}]({contribution_url})"
+                    for repository, contribution_url in displayed_repositories
+                )
+                repository_links += f". Other repository evidence: {other_links}"
+            additional_count = len(other_repositories) - len(displayed_repositories)
+        else:
+            displayed_repositories = repositories[:max_repositories_per_skill]
+            repository_links = ", ".join(
+                f"[{repository}]({contribution_url})"
+                for repository, contribution_url in displayed_repositories
+            )
+            additional_count = len(repositories) - len(displayed_repositories)
         repository_word = "repository" if additional_count == 1 else "repositories"
         additional = (
             f" (+{additional_count} more {repository_word})"
@@ -568,7 +607,10 @@ def main() -> int:
     updated = update_readme_text(
         current,
         format_contributions(contributions, highlighted_contributions),
-        format_skills(skills),
+        format_skills(
+            skills,
+            highlighted_contributions=highlighted_contributions,
+        ),
     )
 
     if updated == current:

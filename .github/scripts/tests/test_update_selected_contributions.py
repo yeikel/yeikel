@@ -444,15 +444,23 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
                     (
                         "dependabot/dependabot-core",
                         "https://github.com/dependabot/dependabot-core/pull/14812",
-                    )
+                    ),
+                    ("excon/excon", "https://github.com/excon/excon/pull/900"),
+                    (
+                        "deitch/docker_registry2",
+                        "https://github.com/deitch/docker_registry2/pull/85",
+                    ),
+                    ("example/ruby", "https://github.com/example/ruby/pull/1"),
                 ],
                 "Java": [
                     ("example/one", "https://github.com/example/one/pull/1"),
                     ("example/two", "https://github.com/example/two/pull/2"),
                     ("example/three", "https://github.com/example/three/pull/3"),
                     ("example/four", "https://github.com/example/four/pull/4"),
+                    ("example/five", "https://github.com/example/five/pull/5"),
                 ],
-            }
+            },
+            highlighted_contributions=HIGHLIGHTED_CONTRIBUTIONS,
         )
 
         self.assertEqual(
@@ -465,9 +473,19 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             "| **Java** | [example/one](https://github.com/example/one/pull/1), "
             "[example/two](https://github.com/example/two/pull/2), "
             "[example/three](https://github.com/example/three/pull/3) "
-            "(+1 more repository) |\n"
-            "| **Ruby** | [dependabot/dependabot-core]"
-            "(https://github.com/dependabot/dependabot-core/pull/14812) |",
+            "(+2 more repositories) |\n"
+            "| **Ruby** | Highlighted examples: "
+            "[dependabot/dependabot-core#14812]"
+            "(https://github.com/dependabot/dependabot-core/pull/14812), "
+            "[dependabot/dependabot-core#15226]"
+            "(https://github.com/dependabot/dependabot-core/pull/15226), "
+            "[dependabot/dependabot-core#15191]"
+            "(https://github.com/dependabot/dependabot-core/pull/15191). "
+            "Other repository evidence: "
+            "[excon/excon](https://github.com/excon/excon/pull/900), "
+            "[deitch/docker_registry2]"
+            "(https://github.com/deitch/docker_registry2/pull/85) "
+            "(+1 more repository) |",
             formatted,
         )
 
