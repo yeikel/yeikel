@@ -159,16 +159,24 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             formatted,
         )
 
-    def test_highlights_pinned_contribution_without_duplicate(self) -> None:
-        highlighted_item = contribution(
-            repository="dependabot/dependabot-core",
-            number=14812,
-            title="Add support for the Maven Wrapper",
-            merged_at="2026-03-01T00:00:00Z",
-        )
+    def test_highlights_pinned_contributions_without_duplicates(self) -> None:
+        highlighted_items = [
+            contribution(
+                repository="dependabot/dependabot-core",
+                number=15226,
+                title="Gate YARN_NPM_MINIMAL_AGE_GATE on Yarn 4.10+",
+                merged_at="2026-04-01T00:00:00Z",
+            ),
+            contribution(
+                repository="dependabot/dependabot-core",
+                number=14812,
+                title="Add support for the Maven Wrapper",
+                merged_at="2026-03-01T00:00:00Z",
+            ),
+        ]
 
         formatted = UPDATER.format_contributions(
-            [highlighted_item],
+            highlighted_items,
             UPDATER.HIGHLIGHTED_CONTRIBUTIONS,
         )
 
@@ -176,10 +184,14 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             "### [dependabot/dependabot-core]"
             "(https://github.com/dependabot/dependabot-core)\n\n"
             "- **Featured:** [#14812 — Add support for the Maven Wrapper]"
-            "(https://github.com/dependabot/dependabot-core/pull/14812)",
+            "(https://github.com/dependabot/dependabot-core/pull/14812)\n"
+            "- **Featured:** "
+            "[#15226 — Gate YARN_NPM_MINIMAL_AGE_GATE on Yarn 4.10+]"
+            "(https://github.com/dependabot/dependabot-core/pull/15226)",
             formatted,
         )
         self.assertEqual(1, formatted.count("/pull/14812"))
+        self.assertEqual(1, formatted.count("/pull/15226"))
 
     def test_highlighted_contribution_does_not_consume_recent_slot(self) -> None:
         items = [

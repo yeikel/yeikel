@@ -38,6 +38,12 @@ HIGHLIGHTED_CONTRIBUTIONS = (
         "Add support for the Maven Wrapper",
         "https://github.com/dependabot/dependabot-core/pull/14812",
     ),
+    (
+        "dependabot/dependabot-core",
+        15226,
+        "Gate YARN_NPM_MINIMAL_AGE_GATE on Yarn 4.10+",
+        "https://github.com/dependabot/dependabot-core/pull/15226",
+    ),
 )
 
 

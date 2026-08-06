@@ -35,6 +35,7 @@ Selected contributions:
 ### [dependabot/dependabot-core](https://github.com/dependabot/dependabot-core)
 
 - **Featured:** [#14812 — Add support for the Maven Wrapper](https://github.com/dependabot/dependabot-core/pull/14812)
+- **Featured:** [#15226 — Gate YARN_NPM_MINIMAL_AGE_GATE on Yarn 4.10+](https://github.com/dependabot/dependabot-core/pull/15226)
 - [#14905 — Rescue errors in metadata_cascades_for_dep to prevent PR message loss](https://github.com/dependabot/dependabot-core/pull/14905)
 - [#14114 — Add support for calendar-based versions for Maven and Gradle](https://github.com/dependabot/dependabot-core/pull/14114)
 
