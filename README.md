@@ -14,6 +14,7 @@ Selected contributions:
 <!-- This section is updated automatically by .github/workflows/update-selected-contributions.yml. -->
 ### [dependabot/dependabot-core](https://github.com/dependabot/dependabot-core)
 
+- **Featured:** [#14812 — Add support for the Maven Wrapper](https://github.com/dependabot/dependabot-core/pull/14812)
 - [#14905 — Rescue errors in metadata_cascades_for_dep to prevent PR message loss](https://github.com/dependabot/dependabot-core/pull/14905)
 - [#14114 — Add support for calendar-based versions for Maven and Gradle](https://github.com/dependabot/dependabot-core/pull/14114)
 

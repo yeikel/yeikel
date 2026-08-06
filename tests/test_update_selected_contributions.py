@@ -134,6 +134,28 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             formatted,
         )
 
+    def test_highlights_pinned_contribution_without_duplicate(self) -> None:
+        highlighted_item = contribution(
+            repository="dependabot/dependabot-core",
+            number=14812,
+            title="Add support for the Maven Wrapper",
+            merged_at="2026-03-01T00:00:00Z",
+        )
+
+        formatted = UPDATER.format_contributions(
+            [highlighted_item],
+            UPDATER.HIGHLIGHTED_CONTRIBUTIONS,
+        )
+
+        self.assertEqual(
+            "### [dependabot/dependabot-core]"
+            "(https://github.com/dependabot/dependabot-core)\n\n"
+            "- **Featured:** [#14812 — Add support for the Maven Wrapper]"
+            "(https://github.com/dependabot/dependabot-core/pull/14812)",
+            formatted,
+        )
+        self.assertEqual(1, formatted.count("/pull/14812"))
+
     def test_replaces_only_the_generated_section(self) -> None:
         original = (
             "Before\n"

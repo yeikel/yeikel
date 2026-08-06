@@ -22,6 +22,14 @@ GENERATED_NOTICE = (
 )
 PER_PAGE = 100
 MAX_SEARCH_RESULTS = 1_000
+HIGHLIGHTED_CONTRIBUTIONS = (
+    (
+        "dependabot/dependabot-core",
+        14812,
+        "Add support for the Maven Wrapper",
+        "https://github.com/dependabot/dependabot-core/pull/14812",
+    ),
+)
 
 
 def _request_page(
@@ -116,11 +124,24 @@ def _escape_link_text(value: str) -> str:
     return normalized.replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]")
 
 
-def format_contributions(items: list[dict[str, Any]]) -> str:
+def format_contributions(
+    items: list[dict[str, Any]],
+    highlighted_contributions: tuple[tuple[str, int, str, str], ...] = (),
+) -> str:
     contributions_by_repository: dict[str, list[str]] = {}
+    highlighted_keys = set()
+
+    for repository, number, title, url in highlighted_contributions:
+        highlighted_keys.add((repository, number))
+        contributions_by_repository.setdefault(repository, []).append(
+            f"- **Featured:** [#{number} — {_escape_link_text(title)}]({url})"
+        )
+
     for item in items:
         repository = _repository_name(str(item["repository_url"]))
         number = int(item["number"])
+        if (repository, number) in highlighted_keys:
+            continue
         title = _escape_link_text(str(item["title"]))
         url = _pull_request_url(item)
         contributions_by_repository.setdefault(repository, []).append(
@@ -178,7 +199,10 @@ def main() -> int:
         token=os.environ.get("GITHUB_TOKEN"),
     )
     current = args.readme.read_text(encoding="utf-8")
-    updated = update_readme_text(current, format_contributions(contributions))
+    updated = update_readme_text(
+        current,
+        format_contributions(contributions, HIGHLIGHTED_CONTRIBUTIONS),
+    )
 
     if updated == current:
         print("Selected contributions are already current")
