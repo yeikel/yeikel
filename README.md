@@ -6,6 +6,8 @@ My work spans software architecture, developer experience, dependency automation
 
 In my day-to-day work, I primarily build with Java and the JVM, but I'm open to working across languages and stacks. My open-source contributions reflect that adaptability: I contribute regularly to [Dependabot Core](https://github.com/dependabot/dependabot-core), a predominantly Ruby codebase, even though Ruby is not part of my usual day-to-day stack.
 
+I'm especially interested in distributed systems—their architecture, reliability, and behavior at scale—and in technologies such as [Apache Kafka](https://kafka.apache.org/) and [Apache Spark](https://spark.apache.org/).
+
 ## Skills
 
 <!-- contribution-skills:start -->
