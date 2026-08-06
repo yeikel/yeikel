@@ -134,6 +134,7 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             "After\n",
             updated,
         )
+        self.assertEqual(updated, UPDATER.update_readme_text(updated, "- new"))
 
     def test_rejects_missing_markers(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "marker pair"):
