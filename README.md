@@ -43,6 +43,7 @@ Selected contributions:
 - [#7910 — \[GHSA-7pq2-fhx9-x464\] Apache Shiro’s Jakarta EE module used the HTTP Referer...](https://github.com/github/advisory-database/pull/7910)
 <!-- selected-contributions:end -->
 
-## Connect
+## Contact
 
-[LinkedIn](https://www.linkedin.com/in/yeikel)
+- **Email:** [email@yeikel.com](mailto:email@yeikel.com)
+- **LinkedIn:** [linkedin.com/in/yeikel](https://www.linkedin.com/in/yeikel)
