@@ -1,5 +1,41 @@
 #!/usr/bin/env python3
-"""Update the generated contribution list in the profile README."""
+"""Refresh the generated contribution and skills sections in the profile README.
+
+The updater uses PyGithub to find public, merged pull requests authored by the
+selected GitHub user outside repositories owned by that user. It deduplicates
+the search results, orders them by merge time, and selects the requested number
+of recent contributions without allowing curated highlights to consume those
+slots.
+
+Curated highlights are loaded from ``.github/data/highlighted-contributions.json``.
+They are rendered separately from the automatically selected recent work. The
+script also derives a language skills table from contribution repository
+metadata. Small dependency updates, typo corrections, explicitly excluded
+contributions, and excluded languages are omitted only from the skills evidence.
+
+The rendered contributions are grouped by repository. Both the contribution
+list and skills table replace only their marker-delimited sections in the target
+README. Missing or duplicated markers, malformed highlight data, unexpected
+GitHub data, and invalid URLs fail before the README is written. The file is
+written only when its generated content changes.
+
+Inputs:
+
+* The target README is the optional positional argument and defaults to
+  ``README.md``.
+* ``--username`` selects the GitHub user. It defaults to ``PROFILE_USERNAME``
+  or ``GITHUB_REPOSITORY_OWNER``.
+* ``--limit`` controls the number of automatic recent contributions and
+  defaults to three.
+* ``--highlights`` overrides the curated highlight JSON file.
+* ``GITHUB_TOKEN`` enables authenticated API access. Public access is used when
+  the variable is absent.
+
+Run the locked project from the repository root with:
+
+    uv run --project .github/scripts --locked \\
+        python .github/scripts/update_selected_contributions.py README.md
+"""
 
 from __future__ import annotations
 
@@ -509,7 +545,10 @@ def update_readme_text(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument("readme", nargs="?", type=Path, default=Path("README.md"))
     parser.add_argument(
         "--username",
