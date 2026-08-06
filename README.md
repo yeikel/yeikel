@@ -20,6 +20,10 @@ Primary languages across public repositories in my recent merged contribution hi
 - **MDX** — [lycheeverse/lycheeverse.github.io](https://github.com/lycheeverse/lycheeverse.github.io)
 <!-- contribution-skills:end -->
 
+## Agentic AI
+
+I have hands-on experience working with agentic AI tools including Devin, OpenAI Codex, GitHub Copilot, and Claude, along with other AI-assisted development systems. I use them for codebase exploration, implementation, debugging, refactoring, testing, code review, CI investigation, and multi-step engineering workflows—while keeping architecture, correctness, security, and maintainability grounded in human judgment.
+
 ## Open source contributions
 
 I'm a regular contributor to [Dependabot Core](https://github.com/dependabot/dependabot-core). My [contributions](https://github.com/dependabot/dependabot-core/commits?author=yeikel) span multiple package ecosystems, reliability improvements, and dependency-management behavior.
