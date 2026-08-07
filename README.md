@@ -56,7 +56,7 @@ Primary languages from recent merged contributions, excluding minor dependency a
 
 ## Agentic AI
 
-I use agentic AI for repo-scale investigation, implementation, regression testing, review cleanup, and CI diagnosis. I measure its value by the quality of shipped, reviewable changes rather than generated volume, while keeping architecture, security, and release decisions human-owned.
+I use agentic AI tools including [Devin](https://devin.ai/), [OpenAI Codex](https://openai.com/codex/), [GitHub Copilot](https://github.com/features/copilot), and [Claude](https://claude.ai/) for repo-scale investigation, implementation, regression testing, review cleanup, and CI diagnosis. I measure their value by the quality of shipped, reviewable changes rather than generated volume, while keeping architecture, security, and release decisions human-owned.
 
 ## Contact
 
