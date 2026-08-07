@@ -531,30 +531,39 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
         )
 
         self.assertEqual(
-            "Primary languages across public repositories in my recent merged contribution "
-            "history. Each repository links to a meaningful contribution: a curated highlight "
-            "when available, otherwise my most recently merged contribution. Small dependency "
-            "updates and typo corrections are excluded:\n\n"
+            "Primary languages from recent merged contributions, excluding minor dependency "
+            "and typo fixes. Each repository links to a representative contribution.\n\n"
             "| Language | Contribution evidence |\n"
             "| --- | --- |\n"
             "| **Java** | [example/one](https://github.com/example/one/pull/1), "
-            "[example/two](https://github.com/example/two/pull/2), "
-            "[example/three](https://github.com/example/three/pull/3) "
-            "(+2 more repositories) |\n"
+            "[example/two](https://github.com/example/two/pull/2) "
+            "(+3 more repositories) |\n"
             "| **Ruby** | Highlighted examples: "
             "[dependabot/dependabot-core#14812]"
             "(https://github.com/dependabot/dependabot-core/pull/14812), "
             "[dependabot/dependabot-core#15226]"
-            "(https://github.com/dependabot/dependabot-core/pull/15226), "
-            "[dependabot/dependabot-core#15191]"
-            "(https://github.com/dependabot/dependabot-core/pull/15191). "
-            "Other repository evidence: "
-            "[excon/excon](https://github.com/excon/excon/pull/900), "
-            "[deitch/docker_registry2]"
-            "(https://github.com/deitch/docker_registry2/pull/85) "
-            "(+1 more repository) |",
+            "(https://github.com/dependabot/dependabot-core/pull/15226) "
+            "(+3 more repositories) |",
             formatted,
         )
+
+    def test_limits_default_skills_to_four_languages(self) -> None:
+        formatted = UPDATER.format_skills(
+            {
+                "Java": [("example/java", "https://github.com/example/java/pull/1")],
+                "Ruby": [("example/ruby", "https://github.com/example/ruby/pull/1")],
+                "Go": [("example/go", "https://github.com/example/go/pull/1")],
+                "Scala": [
+                    ("example/scala", "https://github.com/example/scala/pull/1")
+                ],
+                "Shell": [
+                    ("example/shell", "https://github.com/example/shell/pull/1")
+                ],
+            }
+        )
+
+        self.assertEqual(4, formatted.count("| **"))
+        self.assertNotIn("**Shell**", formatted)
 
     def test_prefers_more_recent_language_when_repository_counts_tie(self) -> None:
         formatted = UPDATER.format_skills(
