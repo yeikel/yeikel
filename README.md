@@ -1,6 +1,6 @@
 # Yeikel Santana
 
-I'm a software engineer focused on reliable systems, developer tooling, and better software delivery. My work spans architecture, dependency automation, CI/CD, reliability, security, and open source.
+I'm a software engineer focused on reliable systems, developer tooling, and better software delivery. My work spans architecture, dependency automation, CI/CD, reliability, security, and open source, including practical applications of agentic AI throughout the software lifecycle.
 
 Java and the JVM are my day-to-day foundation. In open source, I work across stacks, especially Ruby through regular contributions to [Dependabot Core](https://github.com/dependabot/dependabot-core). I'm particularly interested in distributed systems and technologies such as [Apache Kafka](https://kafka.apache.org/) and [Apache Spark](https://spark.apache.org/).
 
