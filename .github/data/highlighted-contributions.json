@@ -1,57 +1,38 @@
 [
   {
     "repository": "dependabot/dependabot-core",
-    "number": 14812,
-    "title": "Add support for the Maven Wrapper"
-  },
-  {
-    "repository": "dependabot/dependabot-core",
-    "number": 15226,
-    "title": "Gate YARN_NPM_MINIMAL_AGE_GATE on Yarn 4.10+"
+    "number": 14114,
+    "title": "Add support for calendar-based versions for Maven and Gradle",
+    "impact": "Maven and Gradle version compatibility"
   },
   {
     "repository": "dependabot/dependabot-core",
     "number": 15191,
-    "title": "Disable `npmMinimalAgeGate` for Yarn Berry security updates"
+    "title": "Disable `npmMinimalAgeGate` for Yarn Berry security updates",
+    "impact": "Security-update correctness"
   },
   {
     "repository": "dependabot/dependabot-core",
     "number": 15170,
-    "title": "Pass `--config.minimumReleaseAge=0` for `pnpm` security updates to bypass pnpm-workspace.yaml"
+    "title": "Pass `--config.minimumReleaseAge=0` for `pnpm` security updates to bypass pnpm-workspace.yaml",
+    "impact": "Security-update correctness"
   },
   {
     "repository": "dependabot/dependabot-core",
-    "number": 15136,
-    "title": "Skip Gradle cooldown metadata fetch when cooldown is not configured"
+    "number": 14905,
+    "title": "Rescue errors in metadata_cascades_for_dep to prevent PR message loss",
+    "impact": "Pull-request reliability"
   },
   {
     "repository": "dependabot/dependabot-core",
     "number": 15131,
-    "title": "Fix misleading Terraform registry error when TLS certificate verification fails"
-  },
-  {
-    "repository": "dependabot/dependabot-core",
-    "number": 14344,
-    "title": "Maven: skip unresolvable properties"
+    "title": "Fix misleading Terraform registry error when TLS certificate verification fails",
+    "impact": "Actionable diagnostics"
   },
   {
     "repository": "dependabot/dependabot-core",
     "number": 14132,
-    "title": "Fetch release notes for the Gradle Wrapper"
-  },
-  {
-    "repository": "dependabot/dependabot-core",
-    "number": 13999,
-    "title": "Consider JRE/JDK suffixes and semantics for Maven/Gradle"
-  },
-  {
-    "repository": "dependabot/dependabot-core",
-    "number": 13818,
-    "title": "Consider dependency suffixes for `maven` and `gradle`"
-  },
-  {
-    "repository": "dependabot/dependabot-core",
-    "number": 13800,
-    "title": "Replace usages of `http` with `excon`"
+    "title": "Fetch release notes for the Gradle Wrapper",
+    "impact": "Gradle Wrapper release-note discovery"
   }
 ]

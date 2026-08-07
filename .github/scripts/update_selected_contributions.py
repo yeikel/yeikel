@@ -7,11 +7,13 @@ the search results, orders them by merge time, and selects the requested number
 of recent contributions without allowing curated highlights to consume those
 slots.
 
-Curated highlights are loaded from ``.github/data/highlighted-contributions.json``.
-They are rendered separately from the automatically selected recent work. The
-script also derives a concise language skills table from contribution repository
-metadata. Small dependency updates, typo corrections, explicitly excluded
-contributions, and excluded languages are omitted only from the skills evidence.
+Curated highlights and their impact labels are loaded from
+``.github/data/highlighted-contributions.json``. They are verified against the
+user's merged public contributions and rendered separately from automatically
+selected recent work. The script also derives a concise repository-language
+table from contribution metadata. Small dependency updates, typo corrections,
+explicitly excluded contributions, and excluded languages are omitted only from
+that supporting evidence.
 
 The rendered contributions are grouped by repository. Both the contribution
 list and skills table replace only their marker-delimited sections in the target
@@ -86,7 +88,7 @@ DEPENDENCY_UPDATE_PATTERN = re.compile(
 DEFAULT_HIGHLIGHTS_PATH = (
     Path(__file__).resolve().parents[1] / "data" / "highlighted-contributions.json"
 )
-HighlightedContribution = tuple[str, int, str, str]
+HighlightedContribution = tuple[str, int, str, str, str]
 SkillRepository = tuple[str, str]
 
 
@@ -118,17 +120,18 @@ def load_highlighted_contributions(
 
     contributions: list[HighlightedContribution] = []
     seen: set[tuple[str, int]] = set()
-    required_fields = {"repository", "number", "title"}
+    required_fields = {"repository", "number", "title", "impact"}
     for index, item in enumerate(payload):
         entry_name = f"Highlighted contribution at index {index}"
         if not isinstance(item, dict) or set(item) != required_fields:
             raise RuntimeError(
-                f"{entry_name} must contain exactly repository, number, and title"
+                f"{entry_name} must contain exactly repository, number, title, and impact"
             )
 
         repository = item["repository"]
         number = item["number"]
         title = item["title"]
+        impact = item["impact"]
         if (
             not isinstance(repository, str)
             or repository.count("/") != 1
@@ -142,6 +145,8 @@ def load_highlighted_contributions(
             raise RuntimeError(f"{entry_name} must have a positive integer number")
         if not isinstance(title, str) or not title.strip():
             raise RuntimeError(f"{entry_name} must have a non-empty title")
+        if not isinstance(impact, str) or not impact.strip():
+            raise RuntimeError(f"{entry_name} must have a non-empty impact")
 
         key = (repository, number)
         if key in seen:
@@ -155,6 +160,7 @@ def load_highlighted_contributions(
                 number,
                 title,
                 f"https://github.com/{repository}/pull/{number}",
+                impact,
             )
         )
 
@@ -292,7 +298,7 @@ def select_recent_contributions(
 
     highlighted_keys = {
         (repository, number)
-        for repository, number, _title, _url in highlighted_contributions
+        for repository, number, _title, _url, _impact in highlighted_contributions
     }
     selected = []
     for item in items:
@@ -303,6 +309,27 @@ def select_recent_contributions(
         if len(selected) == limit:
             break
     return selected
+
+
+def validate_highlighted_contributions(
+    items: list[Contribution],
+    highlighted_contributions: tuple[HighlightedContribution, ...],
+) -> None:
+    """Require curated highlights to be merged public PRs by the profile user."""
+    merged_keys = {
+        (item["repository"], int(item["number"]))
+        for item in items
+    }
+    invalid = [
+        f"{repository}#{number}"
+        for repository, number, _title, _url, _impact in highlighted_contributions
+        if (repository, number) not in merged_keys
+    ]
+    if invalid:
+        raise RuntimeError(
+            "Highlighted contributions must be merged public pull requests "
+            f"authored by the profile user: {', '.join(invalid)}"
+        )
 
 
 def fetch_contribution_skills(
@@ -316,7 +343,7 @@ def fetch_contribution_skills(
         raise ValueError("max_repositories must be positive")
 
     meaningful_contribution_urls: dict[str, str] = {}
-    for repository, _number, _title, url in highlighted_contributions:
+    for repository, _number, _title, url, _impact in highlighted_contributions:
         meaningful_contribution_urls.setdefault(repository, url)
 
     repositories: list[str] = []
@@ -385,10 +412,11 @@ def format_skills(
         highlighted_by_repository.setdefault(contribution[0], []).append(contribution)
 
     lines = [
-        "Primary languages from recent merged contributions, excluding minor dependency "
-        "and typo fixes. Each repository links to a representative contribution.",
+        "Repository primary languages represented in recent merged contributions, "
+        "excluding minor dependency and typo fixes. Each repository links to a "
+        "representative contribution.",
         "",
-        "| Language | Contribution evidence |",
+        "| Repository language | Contribution evidence |",
         "| --- | --- |",
     ]
     for language, repositories in ranked_languages:
@@ -406,7 +434,7 @@ def format_skills(
             ]
             example_links = ", ".join(
                 f"[{repository}#{number}]({url})"
-                for repository, number, _title, url in examples
+                for repository, number, _title, url, _impact in examples
             )
             other_repositories = [
                 repository
@@ -444,17 +472,20 @@ def format_contributions(
     items: list[Contribution],
     highlighted_contributions: tuple[HighlightedContribution, ...] = (),
 ) -> str:
-    highlighted_by_repository: dict[str, list[str]] = {}
+    highlighted_by_repository: dict[str, dict[str, list[str]]] = {}
     recent_by_repository: dict[str, list[str]] = {}
     repository_order: list[str] = []
     highlighted_keys = set()
 
-    for repository, number, title, url in highlighted_contributions:
+    for repository, number, title, url, impact in highlighted_contributions:
         highlighted_keys.add((repository, number))
         if repository not in repository_order:
             repository_order.append(repository)
-        highlighted_by_repository.setdefault(repository, []).append(
-            f"- [#{number}: {_escape_link_text(title)}]({url})"
+        highlighted_by_repository.setdefault(repository, {}).setdefault(
+            impact,
+            [],
+        ).append(
+            f"[#{number}: {_escape_link_text(title)}]({url})"
         )
 
     for item in items:
@@ -477,11 +508,12 @@ def format_contributions(
         lines.append(f"### [{repository}](https://github.com/{repository})")
         highlighted = highlighted_by_repository.get(repository)
         if highlighted:
-            lines.extend(["", "#### Highlights", ""])
-            lines.extend(highlighted)
+            lines.extend(["", "#### Selected impact", ""])
+            for impact, contribution_links in highlighted.items():
+                lines.append(f"- **{impact}:** {'; '.join(contribution_links)}")
         recent = recent_by_repository.get(repository)
         if recent:
-            lines.extend(["", "#### Recent contributions", ""])
+            lines.extend(["", "#### Recent merged work", ""])
             lines.extend(recent)
     return "\n".join(lines)
 
@@ -573,6 +605,10 @@ def main() -> int:
         all_contributions = fetch_all_contributions(
             username=args.username,
             github_client=github_client,
+        )
+        validate_highlighted_contributions(
+            all_contributions,
+            highlighted_contributions,
         )
         contributions = select_recent_contributions(
             all_contributions,
