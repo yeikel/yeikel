@@ -9,7 +9,7 @@ slots.
 
 Curated highlights are loaded from ``.github/data/highlighted-contributions.json``.
 They are rendered separately from the automatically selected recent work. The
-script also derives a language skills table from contribution repository
+script also derives a concise language skills table from contribution repository
 metadata. Small dependency updates, typo corrections, explicitly excluded
 contributions, and excluded languages are omitted only from the skills evidence.
 
@@ -66,9 +66,9 @@ SKILLS_GENERATED_NOTICE = (
 PER_PAGE = 100
 MAX_SEARCH_RESULTS = 1_000
 MAX_SKILL_REPOSITORIES = 100
-MAX_SKILLS = 8
-MAX_REPOSITORIES_PER_SKILL = 3
-MAX_HIGHLIGHTED_SKILL_EXAMPLES = 3
+MAX_SKILLS = 4
+MAX_REPOSITORIES_PER_SKILL = 2
+MAX_HIGHLIGHTED_SKILL_EXAMPLES = 2
 MAX_SMALL_DEPENDENCY_UPDATE_FILES = 2
 EXCLUDED_SKILL_LANGUAGES = frozenset({"Kotlin", "MDX"})
 EXCLUDED_SKILL_CONTRIBUTIONS = frozenset(
@@ -385,10 +385,8 @@ def format_skills(
         highlighted_by_repository.setdefault(contribution[0], []).append(contribution)
 
     lines = [
-        "Primary languages across public repositories in my recent merged contribution "
-        "history. Each repository links to a meaningful contribution: a curated highlight "
-        "when available, otherwise my most recently merged contribution. Small dependency "
-        "updates and typo corrections are excluded:",
+        "Primary languages from recent merged contributions, excluding minor dependency "
+        "and typo fixes. Each repository links to a representative contribution.",
         "",
         "| Language | Contribution evidence |",
         "| --- | --- |",
@@ -404,7 +402,7 @@ def format_skills(
         )
         if highlighted_repository:
             examples = highlighted_by_repository[highlighted_repository][
-                :MAX_HIGHLIGHTED_SKILL_EXAMPLES
+                : min(MAX_HIGHLIGHTED_SKILL_EXAMPLES, max_repositories_per_skill)
             ]
             example_links = ", ".join(
                 f"[{repository}#{number}]({url})"
@@ -415,9 +413,8 @@ def format_skills(
                 for repository in repositories
                 if repository[0] != highlighted_repository
             ]
-            displayed_repositories = other_repositories[
-                : max_repositories_per_skill - 1
-            ]
+            remaining_slots = max_repositories_per_skill - len(examples)
+            displayed_repositories = other_repositories[:remaining_slots]
             repository_links = f"Highlighted examples: {example_links}"
             if displayed_repositories:
                 other_links = ", ".join(
