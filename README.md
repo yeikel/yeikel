@@ -16,11 +16,13 @@ Primary languages across public repositories in my recent merged contribution hi
 
 | Language | Contribution evidence |
 | --- | --- |
-| **Java** | [vert-x3/vertx-kafka-client](https://github.com/vert-x3/vertx-kafka-client/pull/318), [eclipse-vertx/vertx-junit5](https://github.com/eclipse-vertx/vertx-junit5/pull/150), [graphql-java/graphql-java](https://github.com/graphql-java/graphql-java/pull/4173) (+52 more repositories) |
+| **Java** | [vert-x3/vertx-kafka-client](https://github.com/vert-x3/vertx-kafka-client/pull/318), [eclipse-vertx/vertx-junit5](https://github.com/eclipse-vertx/vertx-junit5/pull/150), [graphql-java/graphql-java](https://github.com/graphql-java/graphql-java/pull/4173) (+42 more repositories) |
 | **JavaScript** | [SchemaStore/schemastore](https://github.com/SchemaStore/schemastore/pull/5588), [amannn/action-semantic-pull-request](https://github.com/amannn/action-semantic-pull-request/pull/231), [fastify/github-action-merge-dependabot](https://github.com/fastify/github-action-merge-dependabot/pull/411) (+5 more repositories) |
 | **TypeScript** | [kafbat/kafka-ui](https://github.com/kafbat/kafka-ui/pull/1869), [github/docs](https://github.com/github/docs/pull/41793), [gradle-update/update-gradle-wrapper-action](https://github.com/gradle-update/update-gradle-wrapper-action/pull/535) (+4 more repositories) |
 | **Ruby** | Highlighted examples: [dependabot/dependabot-core#14812](https://github.com/dependabot/dependabot-core/pull/14812), [dependabot/dependabot-core#15226](https://github.com/dependabot/dependabot-core/pull/15226), [dependabot/dependabot-core#15191](https://github.com/dependabot/dependabot-core/pull/15191). Other repository evidence: [excon/excon](https://github.com/excon/excon/pull/900), [deitch/docker_registry2](https://github.com/deitch/docker_registry2/pull/85) (+1 more repository) |
 | **Go** | [cbrgm/cleanup-stale-branches-action](https://github.com/cbrgm/cleanup-stale-branches-action/pull/119), [americanexpress/earlybird](https://github.com/americanexpress/earlybird/pull/59), [cli/cli](https://github.com/cli/cli/pull/7337) |
+| **HTML** | [lampepfl/progfun-wiki](https://github.com/lampepfl/progfun-wiki/pull/53), [JimmyLaurent/torrent-search-api](https://github.com/JimmyLaurent/torrent-search-api/pull/90), [stuisme/protractor-pretty-html-reporter](https://github.com/stuisme/protractor-pretty-html-reporter/pull/8) |
+| **Scala** | [sdkman/sdkman-db-migrations](https://github.com/sdkman/sdkman-db-migrations/pull/626), [zouzias/spark-lucenerdd](https://github.com/zouzias/spark-lucenerdd/pull/168) |
 | **Shell** | [dependabot/smoke-tests](https://github.com/dependabot/smoke-tests/pull/522) |
 <!-- contribution-skills:end -->
 
