@@ -1,62 +1,73 @@
 # Yeikel Santana
 
-I'm a software engineer focused on reliable systems, developer tooling, and better software delivery. My work spans architecture, dependency automation, CI/CD, reliability, security, and open source, including practical applications of agentic AI throughout the software lifecycle.
+I build reliable developer infrastructure across JVM systems, dependency automation, CI/CD, and distributed systems.
 
-Java and the JVM are my day-to-day foundation. In open source, I work across stacks, especially Ruby through regular contributions to [Dependabot Core](https://github.com/dependabot/dependabot-core). I'm particularly interested in distributed systems and technologies such as [Apache Kafka](https://kafka.apache.org/) and [Apache Spark](https://spark.apache.org/).
+Java is my day-to-day foundation. In open source, I contribute regularly to [Dependabot Core](https://github.com/dependabot/dependabot-core)'s Ruby codebase, with work spanning package ecosystems, reliability, security-update behavior, and version handling.
 
-## Open source contributions
+## Core focus
 
-I'm a regular contributor to [Dependabot Core](https://github.com/dependabot/dependabot-core). My [contributions](https://github.com/dependabot/dependabot-core/commits?author=yeikel) span multiple package ecosystems, reliability improvements, and dependency-management behavior.
+- Java and JVM architecture
+- Dependency automation and developer tooling
+- CI/CD, reliability, and security
+- Distributed systems, especially [Apache Kafka](https://kafka.apache.org/) and [Apache Spark](https://spark.apache.org/)
 
-Selected contributions:
+## Selected open-source impact
+
+All contributions below are merged. See my complete [Dependabot Core contribution history](https://github.com/dependabot/dependabot-core/commits?author=yeikel).
 
 <!-- selected-contributions:start -->
 <!-- This section is updated automatically by .github/workflows/update-selected-contributions.yml. -->
 ### [dependabot/dependabot-core](https://github.com/dependabot/dependabot-core)
 
-#### Highlights
+#### Selected impact
 
-- [#14812: Add support for the Maven Wrapper](https://github.com/dependabot/dependabot-core/pull/14812)
-- [#15226: Gate YARN_NPM_MINIMAL_AGE_GATE on Yarn 4.10+](https://github.com/dependabot/dependabot-core/pull/15226)
-- [#15191: Disable `npmMinimalAgeGate` for Yarn Berry security updates](https://github.com/dependabot/dependabot-core/pull/15191)
-- [#15170: Pass `--config.minimumReleaseAge=0` for `pnpm` security updates to bypass pnpm-workspace.yaml](https://github.com/dependabot/dependabot-core/pull/15170)
+- **Maven and Gradle version compatibility:** [#14114: Add support for calendar-based versions for Maven and Gradle](https://github.com/dependabot/dependabot-core/pull/14114)
+- **Security-update correctness:** [#15191: Disable `npmMinimalAgeGate` for Yarn Berry security updates](https://github.com/dependabot/dependabot-core/pull/15191); [#15170: Pass `--config.minimumReleaseAge=0` for `pnpm` security updates to bypass pnpm-workspace.yaml](https://github.com/dependabot/dependabot-core/pull/15170)
+- **Pull-request reliability:** [#14905: Rescue errors in metadata_cascades_for_dep to prevent PR message loss](https://github.com/dependabot/dependabot-core/pull/14905)
+- **Actionable diagnostics:** [#15131: Fix misleading Terraform registry error when TLS certificate verification fails](https://github.com/dependabot/dependabot-core/pull/15131)
+- **Gradle Wrapper release-note discovery:** [#14132: Fetch release notes for the Gradle Wrapper](https://github.com/dependabot/dependabot-core/pull/14132)
+
+#### Recent merged work
+
 - [#15136: Skip Gradle cooldown metadata fetch when cooldown is not configured](https://github.com/dependabot/dependabot-core/pull/15136)
-- [#15131: Fix misleading Terraform registry error when TLS certificate verification fails](https://github.com/dependabot/dependabot-core/pull/15131)
-- [#14344: Maven: skip unresolvable properties](https://github.com/dependabot/dependabot-core/pull/14344)
-- [#14132: Fetch release notes for the Gradle Wrapper](https://github.com/dependabot/dependabot-core/pull/14132)
-- [#13999: Consider JRE/JDK suffixes and semantics for Maven/Gradle](https://github.com/dependabot/dependabot-core/pull/13999)
-- [#13818: Consider dependency suffixes for `maven` and `gradle`](https://github.com/dependabot/dependabot-core/pull/13818)
-- [#13800: Replace usages of `http` with `excon`](https://github.com/dependabot/dependabot-core/pull/13800)
-
-#### Recent contributions
-
-- [#14905: Rescue errors in metadata_cascades_for_dep to prevent PR message loss](https://github.com/dependabot/dependabot-core/pull/14905)
-- [#14114: Add support for calendar-based versions for Maven and Gradle](https://github.com/dependabot/dependabot-core/pull/14114)
 
 ### [github/advisory-database](https://github.com/github/advisory-database)
 
-#### Recent contributions
+#### Recent merged work
 
 - [#7910: \[GHSA-7pq2-fhx9-x464\] Apache Shiro’s Jakarta EE module used the HTTP Referer...](https://github.com/github/advisory-database/pull/7910)
+
+### [kafbat/kafka-ui](https://github.com/kafbat/kafka-ui)
+
+#### Recent merged work
+
+- [#1869: infra: Add focused dependency groups to dependabot config](https://github.com/kafbat/kafka-ui/pull/1869)
 <!-- selected-contributions:end -->
 
-## Skills
+## Agentic AI
+
+I use agentic AI tools including [Devin](https://devin.ai/), [OpenAI Codex](https://openai.com/codex/), [GitHub Copilot](https://github.com/features/copilot), and [Claude](https://claude.ai/) to investigate codebases, implement and validate changes, resolve review feedback, and diagnose CI. I judge these tools by shipped, reviewable outcomes while keeping architecture, security, and release decisions human-owned.
+
+## Open-source contribution footprint
+
+<details>
+<summary>Languages represented in recent merged upstream work</summary>
+
+<br>
 
 <!-- contribution-skills:start -->
 <!-- This section is derived automatically from public contribution repositories. -->
-Primary languages from recent merged contributions, excluding minor dependency and typo fixes. Each repository links to a representative contribution.
+Repository primary languages represented in recent merged contributions, excluding minor dependency and typo fixes. Each repository links to a representative contribution.
 
-| Language | Contribution evidence |
+| Repository language | Contribution evidence |
 | --- | --- |
 | **Java** | [vert-x3/vertx-kafka-client](https://github.com/vert-x3/vertx-kafka-client/pull/318), [eclipse-vertx/vertx-junit5](https://github.com/eclipse-vertx/vertx-junit5/pull/150) (+43 more repositories) |
 | **JavaScript** | [SchemaStore/schemastore](https://github.com/SchemaStore/schemastore/pull/5588), [amannn/action-semantic-pull-request](https://github.com/amannn/action-semantic-pull-request/pull/231) (+6 more repositories) |
 | **TypeScript** | [kafbat/kafka-ui](https://github.com/kafbat/kafka-ui/pull/1869), [github/docs](https://github.com/github/docs/pull/41793) (+5 more repositories) |
-| **Ruby** | Highlighted examples: [dependabot/dependabot-core#14812](https://github.com/dependabot/dependabot-core/pull/14812), [dependabot/dependabot-core#15226](https://github.com/dependabot/dependabot-core/pull/15226) (+3 more repositories) |
+| **Ruby** | Highlighted examples: [dependabot/dependabot-core#14114](https://github.com/dependabot/dependabot-core/pull/14114), [dependabot/dependabot-core#15191](https://github.com/dependabot/dependabot-core/pull/15191) (+3 more repositories) |
 <!-- contribution-skills:end -->
 
-## Agentic AI
-
-I use agentic AI tools including [Devin](https://devin.ai/), [OpenAI Codex](https://openai.com/codex/), [GitHub Copilot](https://github.com/features/copilot), and [Claude](https://claude.ai/) for repo-scale investigation, implementation, regression testing, review cleanup, and CI diagnosis. I measure their value by the quality of shipped, reviewable changes rather than generated volume, while keeping architecture, security, and release decisions human-owned.
+</details>
 
 ## Contact
 

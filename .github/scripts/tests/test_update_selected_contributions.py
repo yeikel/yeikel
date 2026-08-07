@@ -124,9 +124,10 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
         self.assertIn(
             (
                 "dependabot/dependabot-core",
-                14812,
-                "Add support for the Maven Wrapper",
-                "https://github.com/dependabot/dependabot-core/pull/14812",
+                14114,
+                "Add support for calendar-based versions for Maven and Gradle",
+                "https://github.com/dependabot/dependabot-core/pull/14114",
+                "Maven and Gradle version compatibility",
             ),
             HIGHLIGHTED_CONTRIBUTIONS,
         )
@@ -141,6 +142,7 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
                             "repository": "dependabot/dependabot-core",
                             "number": "14812",
                             "title": "Add support for the Maven Wrapper",
+                            "impact": "Maven Wrapper support",
                         }
                     ]
                 ),
@@ -227,6 +229,45 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
         self.assertEqual(1, len(result))
         self.assertEqual(42, result[0]["number"])
 
+    def test_accepts_merged_highlighted_contributions(self) -> None:
+        merged = contribution(
+            repository="example/project",
+            number=42,
+            title="Improve reliability",
+            merged_at="2026-01-01T00:00:00Z",
+        )
+
+        UPDATER.validate_highlighted_contributions(
+            [merged],
+            (
+                (
+                    "example/project",
+                    42,
+                    "Improve reliability",
+                    "https://github.com/example/project/pull/42",
+                    "Reliability",
+                ),
+            ),
+        )
+
+    def test_rejects_unmerged_highlighted_contributions(self) -> None:
+        with self.assertRaisesRegex(
+            RuntimeError,
+            r"merged public pull requests.*example/project#42",
+        ):
+            UPDATER.validate_highlighted_contributions(
+                [],
+                (
+                    (
+                        "example/project",
+                        42,
+                        "Work in progress",
+                        "https://github.com/example/project/pull/42",
+                        "Reliability",
+                    ),
+                ),
+            )
+
     def test_groups_contributions_by_repository_and_escapes_title(self) -> None:
         formatted = UPDATER.format_contributions(
             [
@@ -254,14 +295,14 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
         self.assertEqual(
             "### [dependabot/dependabot-core]"
             "(https://github.com/dependabot/dependabot-core)\n\n"
-            "#### Recent contributions\n\n"
+            "#### Recent merged work\n\n"
             "- [#123: Handle \\[quoted\\] \\\\ values]"
             "(https://github.com/dependabot/dependabot-core/pull/123)\n"
             "- [#122: Improve updater]"
             "(https://github.com/dependabot/dependabot-core/pull/122)\n\n"
             "### [github/advisory-database]"
             "(https://github.com/github/advisory-database)\n\n"
-            "#### Recent contributions\n\n"
+            "#### Recent merged work\n\n"
             "- [#456: Update advisory]"
             "(https://github.com/github/advisory-database/pull/456)",
             formatted,
@@ -275,7 +316,7 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
                 title=title,
                 merged_at="2026-01-01T00:00:00Z",
             )
-            for repository, number, title, _url in reversed(
+            for repository, number, title, _url, _impact in reversed(
                 HIGHLIGHTED_CONTRIBUTIONS
             )
         ]
@@ -285,7 +326,7 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             HIGHLIGHTED_CONTRIBUTIONS,
         )
 
-        self.assertEqual(1, formatted.count("#### Highlights"))
+        self.assertEqual(1, formatted.count("#### Selected impact"))
         self.assertNotIn("Featured", formatted)
         self.assertEqual(
             1,
@@ -295,20 +336,21 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             ),
         )
         previous_position = -1
-        for _repository, number, title, url in HIGHLIGHTED_CONTRIBUTIONS:
-            expected = f"- [#{number}: {title}]({url})"
+        for _repository, number, title, url, _impact in HIGHLIGHTED_CONTRIBUTIONS:
+            expected = f"[#{number}: {title}]({url})"
             self.assertIn(expected, formatted)
             self.assertEqual(1, formatted.count(url))
             position = formatted.index(expected)
             self.assertGreater(position, previous_position)
             previous_position = position
+        self.assertEqual(1, formatted.count("**Security-update correctness:**"))
 
     def test_highlighted_contribution_does_not_consume_recent_slot(self) -> None:
         items = [
             contribution(
                 repository="dependabot/dependabot-core",
-                number=14812,
-                title="Add support for the Maven Wrapper",
+                number=14114,
+                title="Add support for calendar-based versions for Maven and Gradle",
                 merged_at="2026-04-01T00:00:00Z",
             ),
             contribution(
@@ -383,6 +425,7 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
                     99,
                     "Curated Ruby contribution",
                     "https://github.com/example/ruby/pull/99",
+                    "Ruby ecosystem support",
                 ),
             ),
         )
@@ -531,18 +574,19 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
         )
 
         self.assertEqual(
-            "Primary languages from recent merged contributions, excluding minor dependency "
-            "and typo fixes. Each repository links to a representative contribution.\n\n"
-            "| Language | Contribution evidence |\n"
+            "Repository primary languages represented in recent merged contributions, "
+            "excluding minor dependency and typo fixes. Each repository links to a "
+            "representative contribution.\n\n"
+            "| Repository language | Contribution evidence |\n"
             "| --- | --- |\n"
             "| **Java** | [example/one](https://github.com/example/one/pull/1), "
             "[example/two](https://github.com/example/two/pull/2) "
             "(+3 more repositories) |\n"
             "| **Ruby** | Highlighted examples: "
-            "[dependabot/dependabot-core#14812]"
-            "(https://github.com/dependabot/dependabot-core/pull/14812), "
-            "[dependabot/dependabot-core#15226]"
-            "(https://github.com/dependabot/dependabot-core/pull/15226) "
+            "[dependabot/dependabot-core#14114]"
+            "(https://github.com/dependabot/dependabot-core/pull/14114), "
+            "[dependabot/dependabot-core#15191]"
+            "(https://github.com/dependabot/dependabot-core/pull/15191) "
             "(+3 more repositories) |",
             formatted,
         )
