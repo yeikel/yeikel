@@ -31,17 +31,17 @@ All contributions below are merged. See my complete [Dependabot Core contributio
 
 - [#15136: Skip Gradle cooldown metadata fetch when cooldown is not configured](https://github.com/dependabot/dependabot-core/pull/15136)
 
+### [github/docs](https://github.com/github/docs)
+
+#### Recent merged work
+
+- [#40756: Remove refence to rebase-strategy](https://github.com/github/docs/pull/40756)
+
 ### [github/advisory-database](https://github.com/github/advisory-database)
 
 #### Recent merged work
 
 - [#7910: \[GHSA-7pq2-fhx9-x464\] Apache Shiro’s Jakarta EE module used the HTTP Referer...](https://github.com/github/advisory-database/pull/7910)
-
-### [kafbat/kafka-ui](https://github.com/kafbat/kafka-ui)
-
-#### Recent merged work
-
-- [#1869: infra: Add focused dependency groups to dependabot config](https://github.com/kafbat/kafka-ui/pull/1869)
 <!-- selected-contributions:end -->
 
 ## Agentic AI
@@ -63,7 +63,7 @@ Repository primary languages represented in recent merged contributions, excludi
 | --- | --- |
 | **Java** | [vert-x3/vertx-kafka-client](https://github.com/vert-x3/vertx-kafka-client/pull/318), [eclipse-vertx/vertx-junit5](https://github.com/eclipse-vertx/vertx-junit5/pull/150) (+43 more repositories) |
 | **JavaScript** | [SchemaStore/schemastore](https://github.com/SchemaStore/schemastore/pull/5588), [amannn/action-semantic-pull-request](https://github.com/amannn/action-semantic-pull-request/pull/231) (+6 more repositories) |
-| **TypeScript** | [kafbat/kafka-ui](https://github.com/kafbat/kafka-ui/pull/1869), [github/docs](https://github.com/github/docs/pull/41793) (+5 more repositories) |
+| **TypeScript** | [github/docs](https://github.com/github/docs/pull/40756), [kafbat/kafka-ui](https://github.com/kafbat/kafka-ui/pull/1869) (+5 more repositories) |
 | **Ruby** | Highlighted examples: [dependabot/dependabot-core#14114](https://github.com/dependabot/dependabot-core/pull/14114), [dependabot/dependabot-core#15191](https://github.com/dependabot/dependabot-core/pull/15191) (+3 more repositories) |
 <!-- contribution-skills:end -->
 
