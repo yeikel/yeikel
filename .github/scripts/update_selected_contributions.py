@@ -429,9 +429,16 @@ def format_skills(
             None,
         )
         if highlighted_repository:
-            examples = highlighted_by_repository[highlighted_repository][
-                : min(MAX_HIGHLIGHTED_SKILL_EXAMPLES, max_repositories_per_skill)
-            ]
+            highlighted_examples = highlighted_by_repository[highlighted_repository]
+            example_limit = min(
+                MAX_HIGHLIGHTED_SKILL_EXAMPLES,
+                max_repositories_per_skill,
+            )
+            # The leading highlight is already prominent in Selected impact.
+            # Prefer other examples here when enough curated work is available.
+            if len(highlighted_examples) > example_limit:
+                highlighted_examples = highlighted_examples[1:]
+            examples = highlighted_examples[:example_limit]
             example_links = ", ".join(
                 f"[{repository}#{number}]({url})"
                 for repository, number, _title, url, _impact in examples
