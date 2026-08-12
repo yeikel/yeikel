@@ -29,7 +29,7 @@ All contributions below are merged. See my complete [Dependabot Core contributio
 
 #### Recent merged work
 
-- [#15136: Skip Gradle cooldown metadata fetch when cooldown is not configured](https://github.com/dependabot/dependabot-core/pull/15136)
+- [#14812: Add support for the Maven Wrapper](https://github.com/dependabot/dependabot-core/pull/14812)
 
 ### [github/docs](https://github.com/github/docs)
 
