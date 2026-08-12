@@ -1,6 +1,12 @@
 [
   {
     "repository": "dependabot/dependabot-core",
+    "number": 14812,
+    "title": "Add support for the Maven Wrapper",
+    "impact": "Maven Wrapper support"
+  },
+  {
+    "repository": "dependabot/dependabot-core",
     "number": 14114,
     "title": "Add support for calendar-based versions for Maven and Gradle",
     "impact": "Maven and Gradle version compatibility"

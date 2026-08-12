@@ -9,7 +9,7 @@ Java is my day-to-day foundation. In open source, I contribute regularly to [Dep
 - Java and JVM architecture
 - Dependency automation and developer tooling
 - CI/CD, reliability, and security
-- Distributed systems, especially [Apache Kafka](https://kafka.apache.org/) and [Apache Spark](https://spark.apache.org/)
+- Distributed systems, including [Apache Kafka](https://kafka.apache.org/) and [Apache Spark](https://spark.apache.org/)
 
 ## Selected open-source impact
 
@@ -21,6 +21,7 @@ All contributions below are merged. See my complete [Dependabot Core contributio
 
 #### Selected impact
 
+- **Maven Wrapper support:** [#14812: Add support for the Maven Wrapper](https://github.com/dependabot/dependabot-core/pull/14812)
 - **Maven and Gradle version compatibility:** [#14114: Add support for calendar-based versions for Maven and Gradle](https://github.com/dependabot/dependabot-core/pull/14114)
 - **Security-update correctness:** [#15191: Disable `npmMinimalAgeGate` for Yarn Berry security updates](https://github.com/dependabot/dependabot-core/pull/15191); [#15170: Pass `--config.minimumReleaseAge=0` for `pnpm` security updates to bypass pnpm-workspace.yaml](https://github.com/dependabot/dependabot-core/pull/15170)
 - **Pull-request reliability:** [#14905: Rescue errors in metadata_cascades_for_dep to prevent PR message loss](https://github.com/dependabot/dependabot-core/pull/14905)
@@ -29,7 +30,7 @@ All contributions below are merged. See my complete [Dependabot Core contributio
 
 #### Recent merged work
 
-- [#14812: Add support for the Maven Wrapper](https://github.com/dependabot/dependabot-core/pull/14812)
+- [#15136: Skip Gradle cooldown metadata fetch when cooldown is not configured](https://github.com/dependabot/dependabot-core/pull/15136)
 
 ### [github/docs](https://github.com/github/docs)
 
