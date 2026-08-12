@@ -268,13 +268,13 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
                 ),
             )
 
-    def test_groups_contributions_by_repository_and_escapes_title(self) -> None:
+    def test_formats_recent_contribution_table_and_escapes_title(self) -> None:
         formatted = UPDATER.format_contributions(
             [
                 contribution(
                     repository="dependabot/dependabot-core",
                     number=123,
-                    title="Handle [quoted] \\ values",
+                    title="Handle [quoted] \\ | values",
                     merged_at="2026-03-01T00:00:00Z",
                 ),
                 contribution(
@@ -293,18 +293,21 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
         )
 
         self.assertEqual(
-            "### [dependabot/dependabot-core]"
-            "(https://github.com/dependabot/dependabot-core)\n\n"
-            "#### Recent merged work\n\n"
-            "- [#123: Handle \\[quoted\\] \\\\ values]"
-            "(https://github.com/dependabot/dependabot-core/pull/123)\n"
-            "- [#122: Improve updater]"
-            "(https://github.com/dependabot/dependabot-core/pull/122)\n\n"
-            "### [github/advisory-database]"
-            "(https://github.com/github/advisory-database)\n\n"
-            "#### Recent merged work\n\n"
-            "- [#456: Update advisory]"
-            "(https://github.com/github/advisory-database/pull/456)",
+            "### Recent merged work\n\n"
+            "| Repository | Pull request |\n"
+            "| --- | --- |\n"
+            "| [dependabot/dependabot-core]"
+            "(https://github.com/dependabot/dependabot-core) "
+            "| [#123: Handle \\[quoted\\] \\\\ \\| values]"
+            "(https://github.com/dependabot/dependabot-core/pull/123) |\n"
+            "| [github/advisory-database]"
+            "(https://github.com/github/advisory-database) "
+            "| [#456: Update advisory]"
+            "(https://github.com/github/advisory-database/pull/456) |\n"
+            "| [dependabot/dependabot-core]"
+            "(https://github.com/dependabot/dependabot-core) "
+            "| [#122: Improve updater]"
+            "(https://github.com/dependabot/dependabot-core/pull/122) |",
             formatted,
         )
 
@@ -326,7 +329,7 @@ class UpdateSelectedContributionsTest(unittest.TestCase):
             HIGHLIGHTED_CONTRIBUTIONS,
         )
 
-        self.assertEqual(1, formatted.count("#### Selected impact"))
+        self.assertEqual(1, formatted.count("#### Highlights"))
         self.assertNotIn("Featured", formatted)
         self.assertEqual(
             1,

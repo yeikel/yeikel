@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Refresh the generated contribution and skills sections in the profile README.
+"""Refresh the generated contribution section in the profile README.
 
 The updater uses PyGithub to find public, merged pull requests authored by the
 selected GitHub user outside repositories owned by that user. It deduplicates
@@ -10,16 +10,13 @@ slots.
 Curated highlights and their impact labels are loaded from
 ``.github/data/highlighted-contributions.json``. They are verified against the
 user's merged public contributions and rendered separately from automatically
-selected recent work. The script also derives a concise repository-language
-table from contribution metadata. Small dependency updates, typo corrections,
-explicitly excluded contributions, and excluded languages are omitted only from
-that supporting evidence.
+selected recent work.
 
-The rendered contributions are grouped by repository. Both the contribution
-list and skills table replace only their marker-delimited sections in the target
-README. Missing or duplicated markers, malformed highlight data, unexpected
-GitHub data, and invalid URLs fail before the README is written. The file is
-written only when its generated content changes.
+Curated highlights are grouped by repository, while recent contributions are
+rendered in one table. The contribution list replaces only its marker-delimited
+section in the target README. Missing or duplicated markers, malformed
+highlight data, unexpected GitHub data, and invalid URLs fail before the README
+is written. The file is written only when its generated content changes.
 
 Inputs:
 
@@ -284,7 +281,12 @@ def _is_low_signal_skill_contribution(
 
 def _escape_link_text(value: str) -> str:
     normalized = " ".join(value.split())
-    return normalized.replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]")
+    return (
+        normalized.replace("\\", "\\\\")
+        .replace("[", "\\[")
+        .replace("]", "\\]")
+        .replace("|", "\\|")
+    )
 
 
 def select_recent_contributions(
@@ -434,7 +436,7 @@ def format_skills(
                 MAX_HIGHLIGHTED_SKILL_EXAMPLES,
                 max_repositories_per_skill,
             )
-            # The leading highlight is already prominent in Selected impact.
+            # The leading highlight is already prominent in Highlights.
             # Prefer other examples here when enough curated work is available.
             if len(highlighted_examples) > example_limit:
                 highlighted_examples = highlighted_examples[1:]
@@ -480,7 +482,7 @@ def format_contributions(
     highlighted_contributions: tuple[HighlightedContribution, ...] = (),
 ) -> str:
     highlighted_by_repository: dict[str, dict[str, list[str]]] = {}
-    recent_by_repository: dict[str, list[str]] = {}
+    recent_rows: list[str] = []
     repository_order: list[str] = []
     highlighted_keys = set()
 
@@ -500,12 +502,11 @@ def format_contributions(
         number = int(item["number"])
         if (repository, number) in highlighted_keys:
             continue
-        if repository not in repository_order:
-            repository_order.append(repository)
         title = _escape_link_text(str(item["title"]))
         url = _pull_request_url(item)
-        recent_by_repository.setdefault(repository, []).append(
-            f"- [#{number}: {title}]({url})"
+        recent_rows.append(
+            f"| [{repository}](https://github.com/{repository}) "
+            f"| [#{number}: {title}]({url}) |"
         )
 
     lines = []
@@ -515,13 +516,21 @@ def format_contributions(
         lines.append(f"### [{repository}](https://github.com/{repository})")
         highlighted = highlighted_by_repository.get(repository)
         if highlighted:
-            lines.extend(["", "#### Selected impact", ""])
+            lines.extend(["", "#### Highlights", ""])
             for impact, contribution_links in highlighted.items():
                 lines.append(f"- **{impact}:** {'; '.join(contribution_links)}")
-        recent = recent_by_repository.get(repository)
-        if recent:
-            lines.extend(["", "#### Recent merged work", ""])
-            lines.extend(recent)
+    if recent_rows:
+        if lines:
+            lines.append("")
+        lines.extend(
+            [
+                "### Recent merged work",
+                "",
+                "| Repository | Pull request |",
+                "| --- | --- |",
+                *recent_rows,
+            ]
+        )
     return "\n".join(lines)
 
 
@@ -622,19 +631,10 @@ def main() -> int:
             args.limit,
             highlighted_contributions,
         )
-        skills = fetch_contribution_skills(
-            all_contributions,
-            github_client=github_client,
-            highlighted_contributions=highlighted_contributions,
-        )
     current = args.readme.read_text(encoding="utf-8")
     updated = update_readme_text(
         current,
         format_contributions(contributions, highlighted_contributions),
-        format_skills(
-            skills,
-            highlighted_contributions=highlighted_contributions,
-        ),
     )
 
     if updated == current:
