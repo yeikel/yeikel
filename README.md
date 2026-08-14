@@ -32,9 +32,9 @@ All contributions below are merged. See my complete [Dependabot Core contributio
 
 | Repository | Pull request |
 | --- | --- |
+| [dependabot/dependabot-core](https://github.com/dependabot/dependabot-core) | [#13515: Automate dependency upgrades for the helm ecosystem](https://github.com/dependabot/dependabot-core/pull/13515) |
 | [github/docs](https://github.com/github/docs) | [#40756: Remove refence to rebase-strategy](https://github.com/github/docs/pull/40756) |
 | [github/advisory-database](https://github.com/github/advisory-database) | [#7910: \[GHSA-7pq2-fhx9-x464\] Apache Shiro’s Jakarta EE module used the HTTP Referer...](https://github.com/github/advisory-database/pull/7910) |
-| [dependabot/dependabot-core](https://github.com/dependabot/dependabot-core) | [#15136: Skip Gradle cooldown metadata fetch when cooldown is not configured](https://github.com/dependabot/dependabot-core/pull/15136) |
 <!-- selected-contributions:end -->
 
 ## Agentic AI
