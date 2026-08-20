@@ -32,9 +32,9 @@ All contributions below are merged. See my complete [Dependabot Core contributio
 
 | Repository | Pull request |
 | --- | --- |
+| [dependabot/cli](https://github.com/dependabot/cli) | [#646: Document that brew distribution supports Linux](https://github.com/dependabot/cli/pull/646) |
 | [dependabot/dependabot-core](https://github.com/dependabot/dependabot-core) | [#13515: Automate dependency upgrades for the helm ecosystem](https://github.com/dependabot/dependabot-core/pull/13515) |
 | [github/docs](https://github.com/github/docs) | [#40756: Remove refence to rebase-strategy](https://github.com/github/docs/pull/40756) |
-| [github/advisory-database](https://github.com/github/advisory-database) | [#7910: \[GHSA-7pq2-fhx9-x464\] Apache Shiro’s Jakarta EE module used the HTTP Referer...](https://github.com/github/advisory-database/pull/7910) |
 <!-- selected-contributions:end -->
 
 ## Agentic AI
