@@ -1,6 +1,6 @@
 # Yeikel Santana
 
-I build reliable developer infrastructure across JVM systems, dependency automation, CI/CD, and distributed systems.
+I build reliable software, dependency automation, CI/CD, and distributed systems.
 
 Java is my day-to-day foundation. In open source, I contribute regularly to [Dependabot Core](https://github.com/dependabot/dependabot-core)'s Ruby codebase, with work spanning package ecosystems, reliability, security-update behavior, and version handling.
 
