@@ -4,13 +4,6 @@ I build reliable developer infrastructure across JVM systems, dependency automat
 
 Java is my day-to-day foundation. In open source, I contribute regularly to [Dependabot Core](https://github.com/dependabot/dependabot-core)'s Ruby codebase, with work spanning package ecosystems, reliability, security-update behavior, and version handling.
 
-## Core focus
-
-- Java and JVM architecture
-- Dependency automation and developer tooling
-- CI/CD, reliability, and security
-- Distributed systems, including [Apache Kafka](https://kafka.apache.org/) and [Apache Spark](https://spark.apache.org/)
-
 ## Selected open-source impact
 
 All contributions below are merged. See my complete [Dependabot Core contribution history](https://github.com/dependabot/dependabot-core/commits?author=yeikel).
