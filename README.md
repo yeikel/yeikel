@@ -32,7 +32,7 @@ All contributions below are merged. See my complete [Dependabot Core contributio
 
 ## Agentic AI
 
-I use agentic AI tools including [Devin](https://devin.ai/), [OpenAI Codex](https://openai.com/codex/), [GitHub Copilot](https://github.com/features/copilot), and [Claude](https://claude.ai/) to investigate codebases, implement and validate changes, resolve review feedback, and diagnose CI. I judge these tools by shipped, reviewable outcomes while keeping architecture, security, and release decisions human-owned.
+I use agentic AI tools including [Devin](https://devin.ai/), [OpenAI Codex](https://openai.com/codex/), [GitHub Copilot](https://github.com/features/copilot), and [Claude](https://claude.ai/) to investigate codebases, implement and validate changes, resolve review feedback, and diagnose CI.
 
 ## Contact
 
